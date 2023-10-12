@@ -15,3 +15,12 @@ For UI, assuming a Linux environment:
     npm install -g n
     sudo n lts
     reboot
+After reboot, in the ui/commons directory,
+    
+    npm install
+    npm run dev
+
+A page will open in your browser (should show it is unavailable),
+you can refresh it after a while after it finishes compiling. Then, you can add whatever 
+changes to the code (currently ui/src/app/page.js) and it will reflect 
+in the page automatically.
