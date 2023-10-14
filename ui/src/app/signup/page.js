@@ -10,12 +10,12 @@ export default function Signup() {
   // Generate JSX code for error message
   const renderErrorMessage = (name) =>
     name === errorMessages.name && (
-      <div className="error">{errorMessages.message}</div>
+      <div className="error text-red-700">{errorMessages.message}</div>
     );
 
   const errors = {
-    uname: "invalid username",
-    pass: "invalid password"
+    email: "Input email has already been used by an account. Please log in.",
+    password: "Password error"
   };
 
   const handleSubmit = (event) => {
@@ -31,25 +31,26 @@ export default function Signup() {
     console.log(password._valueTracker.getValue());
 
     // Find user login info
-    // const userData = database.find((user) => user.username === uname.value);
+    // const userData = database.find((user) => user.username === email.value);
     // call some api like the above line
 
     // Compare user info
-    // if (userData) {
-    //   if (userData.password !== password.value) {
-    //     // Invalid password
-    //     setErrorMessages({ name: "pass", message: errors.pass });
+    // if (!userData) {
+    //   if (!userData.password) {
+    //     // No password
+    //     setErrorMessages({ name: "password", message: errors.password });
     //   } else {
     //     setIsSubmitted(true);
+    //     report to db using api
+    //     window.location.replace('/profile/creation');
     //   }
     // } else {
     //   // Username not found
-    //   setErrorMessages({ name: "uname", message: errors.uname });
+    //   setErrorMessages({ name: "email", message: errors.email });
     // }
   };
 
   return (
-      // {isSubmitted ? [redirect to profile creation page]:
     <div className="flex flex-col items-center md:flex-row md:h-screen">
         <div className="flex items-center justify-center w-full md:w-1/2">
           <Image src="/nyu.png" alt="Washington Square Park" width={800} height={533} />
@@ -90,6 +91,7 @@ export default function Signup() {
                 className="w-full px-4 py-3 mt-1 border-gray-300 rounded-md focus:border-indigo-500 focus:ring focus:ring-indigo-200 text-black"
                 required
               />
+              {renderErrorMessage("email")}
             </div>
             <div className="mb-2">
               <label
@@ -105,6 +107,7 @@ export default function Signup() {
                 className="w-full px-4 py-3 mt-1 border-gray-300 rounded-md focus:border-indigo-500 focus:ring focus:ring-indigo-200 text-black"
                 required
               />
+              {renderErrorMessage("password")}
             </div>
             <div className="mt-6">
               <button type="submit" className="w-full px-4 py-3 font-bold text-white bg-indigo-500 rounded-md hover:bg-indigo-600 focus:outline-none focus:shadow-outline-indigo focus:border-indigo-700">

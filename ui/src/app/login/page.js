@@ -13,8 +13,13 @@ export default function Login() {
   // Generate JSX code for error message
   const renderErrorMessage = (name) =>
     name === errorMessages.name && (
-      <div className="error">{errorMessages.message}</div>
+      <div className="error text-red-700">{errorMessages.message}</div>
     );
+
+  const errors = {
+    email: "We cannot find an account associated with this email. Please try again.",
+    password: "Password is incorrect. Please try again."
+  };
 
   const handleSubmit = (event) => {
     // Prevent page reload
@@ -25,6 +30,24 @@ export default function Login() {
     // prints the input email and pw
     console.log(email._valueTracker.getValue());
     console.log(password._valueTracker.getValue());
+
+        // Find user login info
+    // const userData = database.find((user) => user.username === email.value);
+    // call some api like the above line
+
+    // Compare user info
+    // if (userData) {
+    //   if (userData.password !== password.value) {
+    //     // Invalid password
+    //     setErrorMessages({ name: "password", message: errors.password });
+    //   } else {
+    //     setIsSubmitted(true);
+    //     window.location.replace('/profile/creation');
+    //   }
+    // } else {
+    //   // Username not found
+    //   setErrorMessages({ name: "email", message: errors.email });
+    // }
   };
 
   return (
