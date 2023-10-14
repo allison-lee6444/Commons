@@ -6,7 +6,7 @@ Sample API calls were made with fetch API on the front-end during testing.
 
 API Methods:
   - authenticateUserSignIn
-    - Use: Register new users.
+    - Use: Authenticate user sign in attempts.
     - Path: [SERVER]/authenticateUserSignIn/[USERNAME_DATA]?password=[PASSWORD_DATA]
     - Parameters: Username, Password
 
