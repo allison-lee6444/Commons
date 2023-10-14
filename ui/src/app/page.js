@@ -4,6 +4,7 @@ import "react-chat-elements/dist/main.css"
 import { ChatList } from "react-chat-elements";
 
 export default function Home() {
+  // window.location.replace('/login');
   return (
     <ChatList
       className='chat-list'

@@ -1,8 +1,55 @@
 // credit: slight modification from https://larainfo.com/blogs/react-with-tailwind-css-sign-up-page-example
+"use client"
 import Image from "next/image";
+import {useState} from "react";
 
 export default function Signup() {
+  const [errorMessages, setErrorMessages] = useState({});
+  const [isSubmitted, setIsSubmitted] = useState(false);
+
+  // Generate JSX code for error message
+  const renderErrorMessage = (name) =>
+    name === errorMessages.name && (
+      <div className="error">{errorMessages.message}</div>
+    );
+
+  const errors = {
+    uname: "invalid username",
+    pass: "invalid password"
+  };
+
+  const handleSubmit = (event) => {
+    // Prevent page reload
+    event.preventDefault();
+    const name = document.forms[0][0];
+    const email = document.forms[0][1];
+    const password = document.forms[0][2];
+
+    // prints the input name, email, and pw
+    console.log(name._valueTracker.getValue());
+    console.log(email._valueTracker.getValue());
+    console.log(password._valueTracker.getValue());
+
+    // Find user login info
+    // const userData = database.find((user) => user.username === uname.value);
+    // call some api like the above line
+
+    // Compare user info
+    // if (userData) {
+    //   if (userData.password !== password.value) {
+    //     // Invalid password
+    //     setErrorMessages({ name: "pass", message: errors.pass });
+    //   } else {
+    //     setIsSubmitted(true);
+    //   }
+    // } else {
+    //   // Username not found
+    //   setErrorMessages({ name: "uname", message: errors.uname });
+    // }
+  };
+
   return (
+      // {isSubmitted ? [redirect to profile creation page]:
     <div className="flex flex-col items-center md:flex-row md:h-screen">
         <div className="flex items-center justify-center w-full md:w-1/2">
           <Image src="/nyu.png" alt="Washington Square Park" width={800} height={533} />
@@ -13,7 +60,7 @@ export default function Signup() {
           <h1 className="text-2xl font-bold">
             Create an account
           </h1>
-          <form className="mt -8 space-y-6">
+          <form className="mt -8 space-y-6" onSubmit={handleSubmit}>
             <div className="mb-2">
               <label
                 htmlFor="name"
@@ -60,7 +107,7 @@ export default function Signup() {
               />
             </div>
             <div className="mt-6">
-              <button className="w-full px-4 py-3 font-bold text-white bg-indigo-500 rounded-md hover:bg-indigo-600 focus:outline-none focus:shadow-outline-indigo focus:border-indigo-700">
+              <button type="submit" className="w-full px-4 py-3 font-bold text-white bg-indigo-500 rounded-md hover:bg-indigo-600 focus:outline-none focus:shadow-outline-indigo focus:border-indigo-700">
                 Sign up
               </button>
             </div>

@@ -1,9 +1,32 @@
 // credit: copied from https://larainfo.com/blogs/nextjs-with-tailwind-login-page-example
-
+"use client"
 import Image from "next/image";
 import Link from "next/link";
+import {useState} from "react";
+
+
 
 export default function Login() {
+  const [errorMessages, setErrorMessages] = useState({});
+  const [isSubmitted, setIsSubmitted] = useState(false);
+
+  // Generate JSX code for error message
+  const renderErrorMessage = (name) =>
+    name === errorMessages.name && (
+      <div className="error">{errorMessages.message}</div>
+    );
+
+  const handleSubmit = (event) => {
+    // Prevent page reload
+    event.preventDefault();
+    const email = document.forms[0][0];
+    const password = document.forms[0][1];
+
+    // prints the input email and pw
+    console.log(email._valueTracker.getValue());
+    console.log(password._valueTracker.getValue());
+  };
+
   return (
     <div className="flex flex-col items-center md:flex-row md:h-screen">
       <div className="flex items-center justify-center w-full md:w-1/2">
@@ -17,7 +40,7 @@ export default function Login() {
               Please sign in to your account.
             </p>
           </div>
-          <form className="mt -8 space-y-6">
+          <form className="mt -8 space-y-6" onSubmit={handleSubmit}>
             <div>
               <label htmlFor="email" className="block font-bold text-gray-500">
                 Email address
