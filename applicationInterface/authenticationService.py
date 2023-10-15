@@ -61,6 +61,13 @@ def registerAccount(email,password):
         return False
     return True
 
+def createProfile(student_id, uni_id, name, graduation_year, major, hobbies, interests):
+    try:
+        cur.execute('INSERT INTO student_profile VALUES(%s, %s, %s, %s, %s, %s, %s)', (student_id, uni_id, name, graduation_year, major, hobbies, interests))
+    except:
+        return False
+    return True
+
 # Main controller class.
 class RootController(TGController):
 
@@ -73,6 +80,10 @@ class RootController(TGController):
     @expose('json')
     def registerNewUser(self, email, password):
         return {"result":registerAccount(email,password)}
+    
+    @expose('json')
+    def createStudentProfile(self, student_id, uni_id, name, graduation_year, major, hobbies, interests):
+        return {"result":createProfile(student_id, uni_id, name, graduation_year, major, hobbies, interests)}
     
 config = AppConfig(minimal = True, root_controller = RootController())
 application = config.make_wsgi_app()
