@@ -68,6 +68,12 @@ def createProfile(student_id, uni_id, name, graduation_year, major, hobbies, int
         return False
     return True
 
+def retrieveProfileData(student_id, uni_id):
+    cur.execute('SELECT * FROM student_profile WHERE student_id = %s AND uni_id = %s', (student_id, uni_id))
+    result = cur.fetchall()
+    return result
+
+
 # Main controller class.
 class RootController(TGController):
 
@@ -81,9 +87,16 @@ class RootController(TGController):
     def registerNewUser(self, email, password):
         return {"result":registerAccount(email,password)}
     
+    #Method to create student profile
     @expose('json')
     def createStudentProfile(self, student_id, uni_id, name, graduation_year, major, hobbies, interests):
         return {"result":createProfile(student_id, uni_id, name, graduation_year, major, hobbies, interests)}
+    
+    #Method to retrieve data of a student profile for a particular student
+    @expose('json')
+    def getStudentProfileData(self, student_id, uni_id):
+        return {"result":retrieveProfileData(student_id, uni_id)}
+
     
 config = AppConfig(minimal = True, root_controller = RootController())
 application = config.make_wsgi_app()
