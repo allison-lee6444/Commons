@@ -1,23 +1,25 @@
 START TRANSACTION;
 
-DROP TABLE IF EXISTS student;
-DROP TABLE IF EXISTS university;
-DROP TABLE IF EXISTS attends;
-DROP TABLE IF EXISTS course;
-DROP TABLE IF EXISTS takes;
-DROP TABLE IF EXISTS message;
-DROP TABLE IF EXISTS chatroom;
-DROP TABLE IF EXISTS in_chatroom;
-DROP TABLE IF EXISTS game;
-DROP TABLE IF EXISTS player;
-DROP TABLE IF EXISTS event;
 DROP TABLE IF EXISTS going_to_event;
+DROP TABLE IF EXISTS message;
+DROP TABLE IF EXISTS player;
+DROP TABLE IF EXISTS in_chatroom;
+DROP TABLE IF EXISTS chatroom;
+DROP TABLE IF EXISTS takes;
+DROP TABLE IF EXISTS student_profile;
+DROP TABLE IF EXISTS attends;
+DROP TABLE IF EXISTS student;
+DROP TABLE IF EXISTS course;
+DROP TABLE IF EXISTS university;;
+DROP TABLE IF EXISTS game;
+DROP TABLE IF EXISTS event;
+
 
 
 CREATE TABLE IF NOT EXISTS student (
     email varchar(255) NOT NULL,
     --`id`bigint NOT NULL AUTO_INCREMENT,
-    password varchar(50) NOT NULL,
+    password bytea NOT NULL, --binary
     primary key(email)
 );
 
@@ -105,7 +107,8 @@ CREATE TABLE IF NOT EXISTS event(
     event_name varchar(255) NOT NULL,
     --`chatroom_id` bigint NOT NULL,
     descript text,
-    location varchar(255) NOT NULL,
+    location_name varchar(255) NOT NULL,
+    location_coordinates point NOT NULL,
     timeslot timestamp, --datetime,
     event_id SERIAL, --bigint SERIAL NOT NULL, --AUTO_INCREMENT NOT NULL,
     primary key(event_id)
@@ -121,6 +124,17 @@ CREATE TABLE IF NOT EXISTS going_to_event(
     foreign key (student_id, chatroom_id) REFERENCES in_chatroom(student_id, chatroom_id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS student_profile(
+    student_id bigint NOT NULL,
+    uni_id varchar(255) NOT NULL,
+    name varchar(255) NOT NULL,
+    graduation_year int NOT NULL,
+    major varchar(255) NOT NULL,
+    hobbies text NOT NULL,
+    interests text NOT NULL,
+    primary key(student_id, uni_id),
+    foreign key(student_id, uni_id) REFERENCES attends(student_id, uni_id) ON DELETE CASCADE
+);
 
 
 
