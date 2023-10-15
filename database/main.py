@@ -10,7 +10,7 @@ conn = psycopg2.connect(
 cur = conn.cursor()
 
 # Execute a query
-cur.execute("SELECT * FROM test")
+cur.execute("SELECT * FROM student")
 
 # Retrieve query results
 records = cur.fetchall()
