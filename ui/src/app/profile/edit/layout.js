@@ -1,4 +1,4 @@
-export default function ProfileCreateLayout({
+export default function ProfileEditLayout({
   children, // will be a page or nested layout
 }) {
   return (

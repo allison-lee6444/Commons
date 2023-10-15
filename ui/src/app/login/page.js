@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import {useState} from "react";
-
+import "./Login.css"
 
 
 export default function Login() {
@@ -13,7 +13,7 @@ export default function Login() {
   // Generate JSX code for error message
   const renderErrorMessage = (name) =>
     name === errorMessages.name && (
-      <div className="error text-red-700">{errorMessages.message}</div>
+      <div className="error text-red-600">{errorMessages.message}</div>
     );
 
   const errors = {
@@ -50,6 +50,7 @@ export default function Login() {
     // }
   };
 
+
   return (
     <div className="flex flex-col items-center md:flex-row md:h-screen">
       <div className="flex items-center justify-center w-full md:w-1/2">
@@ -58,8 +59,8 @@ export default function Login() {
       <div className="flex flex-col items-center justify-center w-full md:w-1/4">
         <div className="w-full max-w-md space-y-8">
           <div>
-            <h1 className="text-2xl font-bold">Welcome back!</h1>
-            <p className="mt-2 text-gray-400">
+            <h1 className="text-2xl font-bold text-black">Welcome back!</h1>
+            <p className="mt-2 text-gray-500">
               Please sign in to your account.
             </p>
           </div>

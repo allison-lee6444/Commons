@@ -2,6 +2,7 @@
 "use client"
 import Image from "next/image";
 import {useState} from "react";
+import "./Signup.css";
 
 export default function Signup() {
   const [errorMessages, setErrorMessages] = useState({});
@@ -10,7 +11,7 @@ export default function Signup() {
   // Generate JSX code for error message
   const renderErrorMessage = (name) =>
     name === errorMessages.name && (
-      <div className="error text-red-700">{errorMessages.message}</div>
+      <div className="error text-red-600">{errorMessages.message}</div>
     );
 
   const errors = {
@@ -21,12 +22,10 @@ export default function Signup() {
   const handleSubmit = (event) => {
     // Prevent page reload
     event.preventDefault();
-    const name = document.forms[0][0];
-    const email = document.forms[0][1];
-    const password = document.forms[0][2];
+    const email = document.forms[0][0];
+    const password = document.forms[0][1];
 
-    // prints the input name, email, and pw
-    console.log(name._valueTracker.getValue());
+    // prints the input email, and pw
     console.log(email._valueTracker.getValue());
     console.log(password._valueTracker.getValue());
 
@@ -42,7 +41,7 @@ export default function Signup() {
     //   } else {
     //     setIsSubmitted(true);
     //     report to db using api
-    //     window.location.replace('/profile/creation');
+        window.location.replace('/profile/edit');
     //   }
     // } else {
     //   // Username not found
@@ -58,25 +57,10 @@ export default function Signup() {
         <div className="flex flex-col items-center justify-center w-full md:w-1/4">
           <div className="w-full max-w-md space-y-8">
 
-          <h1 className="text-2xl font-bold">
+          <h1 className="text-2xl font-bold text-black">
             Create an account
           </h1>
           <form className="mt -8 space-y-6" onSubmit={handleSubmit}>
-            <div className="mb-2">
-              <label
-                htmlFor="name"
-                className="block font-bold text-gray-500"
-              >
-                Name
-              </label>
-              <input
-                id="email"
-                type="text"
-                placeholder="Enter your name"
-                className="w-full px-4 py-3 mt-1 border-gray-300 rounded-md focus:border-indigo-500 focus:ring focus:ring-indigo-200 text-black"
-                required
-              />
-            </div>
             <div className="mb-2">
               <label
                 htmlFor="email"
@@ -116,7 +100,7 @@ export default function Signup() {
             </div>
           </form>
           </div>
-          <p className="mt-2 text-xs text-center text-gray-500">
+          <p className="mt-2 text-sm text-center text-gray-500">
             {" "}
             Already a member?{" "}
             <a href="/login" className="font-medium text-blue-600 hover:underline">
