@@ -7,9 +7,13 @@ from wsgiref.simple_server import make_server
 conn = psycopg2.connect(
     host="localhost",
     database="commons",
-    user="commons_dev",
-    password="commons_dev"
+    user="postgres",
+    password="root"
 )
+"""
+user="commons_dev",
+password="commons_dev"
+"""
 
 # Create cursor to interact with the database.
 cur = conn.cursor()
@@ -61,12 +65,12 @@ class RootController(TGController):
     # Method to handle user authentication requests.
     @expose('json')
     def authenticateUserSignIn(self, username, password):
-        return {"authenticationResult":verifyAccount(username,password)}
+        return {"result":verifyAccount(username,password)}
 
     # Method to handle new user registration.
     @expose('json')
     def registerNewUser(self, username, password):
-        return {"registrationResult":registerAccount(username,password)}
+        return {"result":registerAccount(username,password)}
     
 config = AppConfig(minimal = True, root_controller = RootController())
 application = config.make_wsgi_app()
