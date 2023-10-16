@@ -128,15 +128,10 @@ CREATE TABLE IF NOT EXISTS going_to_event(
 );
 
 CREATE TABLE IF NOT EXISTS student_profile(
-    student_id bigint NOT NULL,
-    uni_id varchar(255) NOT NULL,
+    email varchar(255) NOT NULL
     name varchar(255) NOT NULL,
-    graduation_year int NOT NULL,
-    major varchar(255) NOT NULL,
-    hobbies text NOT NULL,
-    interests text NOT NULL,
-    primary key(student_id, uni_id),
-    foreign key(student_id, uni_id) REFERENCES attends(student_id, uni_id) ON DELETE CASCADE
+    primary key(email),
+    foreign key(email) REFERENCES student(email) ON DELETE CASCADE
 );
 
 
