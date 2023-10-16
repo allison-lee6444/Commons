@@ -16,45 +16,44 @@ export default function Login() {
       <div className="error text-red-600">{errorMessages.message}</div>
     );
 
-  const errors = {
-    email: "We cannot find an account associated with this email. Please try again.",
-    password: "Password is incorrect. Please try again."
-  };
+  const input_error =  "Email or password is incorrect. Please try again.";
 
   const handleSubmit = (event) => {
+    let data;
     // Prevent page reload
     event.preventDefault();
-    const email = document.forms[0][0];
-    const password = document.forms[0][1];
+    const email = document.forms[0][0]._valueTracker.getValue();
+    const password = document.forms[0][1]._valueTracker.getValue();
 
-    // prints the input email and pw
-    console.log(email._valueTracker.getValue());
-    console.log(password._valueTracker.getValue());
+    // Find user login info
+    const fetchData = async () => {
+      try {
+        const response = await fetch('http://127.0.0.1:8060/authenticateUserSignIn/' + email + '?password=' + password);
+        data = await response.json();
+      } catch (error) {
+        setErrorMessages({name: "server", message: "Server Error: "+error})
+      }
+    }
 
-        // Find user login info
-    // const userData = database.find((user) => user.username === email.value);
-    // call some api like the above line
+    const check_info = () => {
+      if (data.result) {
+        setIsSubmitted(true);
+        document.cookie='email='+email;
+        window.location.replace('/profile');
+      } else {
+        setErrorMessages({name: "input", message: input_error});
+      }
+    }
 
-    // Compare user info
-    // if (userData) {
-    //   if (userData.password !== password.value) {
-    //     // Invalid password
-    //     setErrorMessages({ name: "password", message: errors.password });
-    //   } else {
-    //     setIsSubmitted(true);
-    //     window.location.replace('/profile/creation');
-    //   }
-    // } else {
-    //   // Username not found
-    //   setErrorMessages({ name: "email", message: errors.email });
-    // }
+    fetchData().then(check_info);
+
   };
 
 
   return (
     <div className="flex flex-col items-center md:flex-row md:h-screen">
       <div className="flex items-center justify-center w-full md:w-1/2">
-        <Image src="/nyu.png" alt="Washington Square Park" width={800} height={533} />
+        <Image src="/nyu.png" alt="Washington Square Park" width={800} height={533}/>
       </div>
       <div className="flex flex-col items-center justify-center w-full md:w-1/4">
         <div className="w-full max-w-md space-y-8">
@@ -91,6 +90,8 @@ export default function Login() {
                 className="w-full px-4 py-3 mt-1 border-gray-300 rounded-md focus:border-indigo-500 focus:ring focus:ring-indigo-200 text-black"
                 required
               />
+              {renderErrorMessage("input")}
+              {renderErrorMessage("server")}
             </div>
             <div>
               <button
