@@ -18,7 +18,5 @@ uni_id = 'NYU'
 cur.execute(f"INSERT INTO university VALUES(%s)", [uni_id])
 cur.execute(f"SELECT * FROM university")
 print(cur.fetchall())
-#cur.execute(f"INSERT INTO student VALUES(%s, %s)", [('xyz@nyu.edu', 'pass')])
-#cur.execute(f"INSERT INTO attends VALUES(%s, %s, %s)", [('xyz@nyu.edu', '75942890865', 'NYU')])
-#createProfile(f"75942890865', 'NYU', 'XYZ', '2024', 'pre-med", 'kayacking', 'medicine')
+
    

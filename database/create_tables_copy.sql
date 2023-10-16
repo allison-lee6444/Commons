@@ -19,8 +19,10 @@ DROP TABLE IF EXISTS event;
 CREATE TABLE IF NOT EXISTS student (
     email varchar(255) NOT NULL,
     --`id`bigint NOT NULL AUTO_INCREMENT,
+
     password varchar(72) NOT NULL, --binary
     salt varchar(72) NOT NULL,
+
     primary key(email)
 );
 
