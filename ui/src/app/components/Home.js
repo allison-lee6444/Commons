@@ -1,14 +1,14 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from "react";
+// import { useNavigate } from 'react-router-dom';
 
 const Home = () => {
-  const navigate = useNavigate();
-  const [userName, setUserName] = useState('');
+  // const navigate = useNavigate();
+  const [userName, setUserName] = useState("");
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    localStorage.setItem('userName', userName);
-    navigate('/chat');
+    localStorage.setItem("userName", userName);
+    // navigate('/chat');
   };
   return (
     <form className="home__container" onSubmit={handleSubmit}>
