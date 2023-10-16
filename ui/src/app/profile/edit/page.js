@@ -70,7 +70,7 @@ function EditProfile() {
         setErrorMessages({name: "server", message: "Server Error: " + error})
       }
     }
-    postProfileData().then(()=>window.location.replace('/'));
+    postProfileData().then(()=>window.location.replace('/profile'));
 
   };
 
