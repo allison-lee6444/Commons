@@ -1,13 +1,26 @@
 /* credit: https://richreact.com/react-examples/Edit-profile-page#code-editor1 */
 "use client"
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import './EditProfile.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
-// including name, student ID, graduation year, major, hobbies, and interests.
 
 function EditProfile() {
   const [errorMessages, setErrorMessages] = useState({});
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [received_reply, set_received_reply] = useState(false);
+  const [profile_info, set_profile_info] = useState({
+    student_id: '',
+    uni_id: '',
+    email: '',
+    graduation_year: '',
+    major: '',
+    hobbies: '',
+    interests: '',
+    fname: '',
+    lname: ''
+  });
+
+  let data;
 
   // Generate JSX code for error message
   const renderErrorMessage = (name) =>
@@ -20,31 +33,44 @@ function EditProfile() {
     password: "Password error"
   };
 
+  function getCookie(name) {
+    function escape(s) {
+      return s.replace(/([.*+?\^$(){}|\[\]\/\\])/g, '\\$1');
+    }
+
+    const match = document.cookie.match(RegExp('(?:^|;\\s*)' + escape(name) + '=([^;]*)'));
+    return match ? match[1] : null;
+  }
+
   const handleSubmit = (event) => {
     // Prevent page reload
     event.preventDefault();
-    const first_name = document.forms[0][0];
-    const last_name = document.forms[0][1];
-    const email = document.forms[0][6];
-    const hobbies = document.forms[0][7];
-    const interests = document.forms[0][8];
-    const current_pw = document.forms[0][9];
-    const new_pw = document.forms[0][10];
+    let {student_id, uni_id, email, graduation_year, major, hobbies, interests, fname, lname} = profile_info
+    const new_fname = document.forms[0][0]._valueTracker.getValue();
+    const new_lname = document.forms[0][1]._valueTracker.getValue();
+    let new_email = document.forms[0][6]._valueTracker.getValue();
+    const new_hobbies = document.forms[0][7]._valueTracker.getValue();
+    const new_interests = document.forms[0][8]._valueTracker.getValue();
+    const current_pw = document.forms[0][9]._valueTracker.getValue();
+    const new_pw = document.forms[0][10]._valueTracker.getValue();
+    fname=new_fname===''?fname:new_fname;
+    lname=new_lname===''?lname:new_lname;
+    new_email=new_email===''?email:new_email;
+    hobbies=new_hobbies===''?hobbies:new_hobbies;
+    interests=new_interests===''?interests:new_interests;
 
+    set_profile_info({student_id, uni_id, email, graduation_year, major, hobbies, interests, fname, lname});
 
-    // prints the input
-    console.log(first_name._valueTracker.getValue());
-    console.log(last_name._valueTracker.getValue());
-    console.log(email._valueTracker.getValue());
-    console.log(hobbies._valueTracker.getValue());
-    console.log(interests._valueTracker.getValue());
-    console.log(current_pw._valueTracker.getValue());
-    console.log(new_pw._valueTracker.getValue());
-
-    // Find user profile info
-
-    // update user info
-    window.location.replace('/profile');
+    // update user profile
+    const postProfileData = async () => {
+      try {
+        const response = await fetch('http://127.0.0.1:8060/editStudentProfile/' + email + '?hobbies=' + hobbies + '&interests=' + interests + '&fname=' + fname + '&lname=' + lname + '&new_email=' + new_email);
+        data = await response.json();
+      } catch (error) {
+        setErrorMessages({name: "server", message: "Server Error: " + error})
+      }
+    }
+    postProfileData().then(()=>window.location.replace('/'));
 
   };
 
@@ -54,11 +80,37 @@ function EditProfile() {
     window.location.replace('/profile');
   }
 
-  // status of api call, should set to false initially, but set as true for demo purposes
-  const [received_reply, set_received_reply] = useState(true);
 
-  // call api here
-  // populate user info variables here
+  const fetchData = async () => {
+    if(received_reply){return;}
+    try {
+      const cookie_email = getCookie('email');
+      const response = await fetch('http://127.0.0.1:8060/getStudentProfileData/' + cookie_email);
+      data = await response.json();
+    } catch (error) {
+      setErrorMessages({name: "server", message: "Server Error: " + error})
+    }
+  }
+
+  fetchData().then(() => {
+    if (received_reply) {return;}
+    if (data.length === 0) {
+      data.push(['', '', getCookie('email'), '', '', '', '', '', '']);
+    }
+    const [student_id, uni_id, email, graduation_year, major, hobbies, interests, fname, lname] = data[0];
+    set_profile_info({student_id, uni_id, email, graduation_year, major, hobbies, interests, fname, lname});
+    set_received_reply(true);
+  })
+
+
+  function set_profile_attr(attr_name, data) {
+    set_profile_info(
+      prevState => {
+        prevState[attr_name] = data;
+        return prevState;
+      });
+  }
+
 
   // load when api reply received and variables populated
   return (received_reply && (
@@ -71,6 +123,7 @@ function EditProfile() {
                 <img src="/default_avatar.png" className="img-circle profile-avatar" alt="User avatar"/>
               </div>
             </div>
+            {renderErrorMessage('server')}
             <div className="panel panel-default">
               <div className="panel-heading">
                 <h4 className="panel-title">User info</h4>
@@ -79,43 +132,43 @@ function EditProfile() {
                 <div className="form-group">
                   <label className="col-sm-2 control-label">First name</label>
                   <div className="col-sm-10">
-                    <input type="text" className="form-control"/>
+                    <input type="text" className="form-control" placeholder={profile_info.fname}/>
                   </div>
                 </div>
                 <div className="form-group">
                   <label className="col-sm-2 control-label">Last name</label>
                   <div className="col-sm-10">
-                    <input type="text" className="form-control"/>
+                    <input type="text" className="form-control" placeholder={profile_info.lname}/>
                   </div>
                 </div>
                 <div className="form-group">
                   <label className="col-sm-2 control-label">School</label>
                   <div className="col-sm-10">
-                    <input type="text" className="form-control" value={"get_school"} disabled/>
+                    <input type="text" className="form-control" value={profile_info.uni_id} disabled/>
                   </div>
                 </div>
                 <div className="form-group">
                   <label className="col-sm-2 control-label">Student ID</label>
                   <div className="col-sm-10">
-                    <input type="text" className="form-control" value={"get_id"} disabled/>
+                    <input type="text" className="form-control" value={profile_info.student_id} disabled/>
                   </div>
                 </div>
                 <div className="form-group">
                   <label className="col-sm-2 control-label">Graduation year</label>
                   <div className="col-sm-10">
-                    <input type="text" className="form-control" value={"get_grad_yr"} disabled/>
+                    <input type="text" className="form-control" value={profile_info.graduation_year} disabled/>
                   </div>
                 </div>
                 <div className="form-group">
                   <label className="col-sm-2 control-label">Major</label>
                   <div className="col-sm-10">
-                    <input type="text" className="form-control" value={"Major"} disabled/>
+                    <input type="text" className="form-control" value={profile_info.major} disabled/>
                   </div>
                 </div>
                 <div className="form-group">
-                  <label className="col-sm-2 control-label">E-mail address</label>
+                  <label className="col-sm-2 control-label">Email</label>
                   <div className="col-sm-10">
-                    <input type="text" className="form-control" value={"get_email"} disabled={false}/>
+                    <input type="email" className="form-control" placeholder={profile_info.email} disabled={false} />
                   </div>
                 </div>
               </div>
@@ -129,13 +182,13 @@ function EditProfile() {
                 <div className="form-group">
                   <label className="col-sm-2 control-label">Hobbies</label>
                   <div className="col-sm-10">
-                    <textarea rows="3" className="form-control"></textarea>
+                    <textarea rows="3" className="form-control" placeholder={profile_info.hobbies}></textarea>
                   </div>
                 </div>
                 <div className="form-group">
                   <label className="col-sm-2 control-label">Interests</label>
                   <div className="col-sm-10">
-                    <textarea rows="3" className="form-control"></textarea>
+                    <textarea rows="3" className="form-control" placeholder={profile_info.interests}></textarea>
                   </div>
                 </div>
               </div>
