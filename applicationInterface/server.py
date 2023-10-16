@@ -29,7 +29,7 @@ def verifyAccount(email,password):
     # Check if we find a username and password that matches.
     try:
         #cur.execute("SELECT * FROM test WHERE id=%s and number=%s",(username,hashedPassword)) # Test
-        cur.execute("SELECT * FROM student WHERE email=%s and password=%s",(email,hashedPassword))
+        cur.execute(f"SELECT * FROM student WHERE email=%s and password=%s",(email,hashedPassword))
         result = cur.fetchall()
     except:
         return False
@@ -45,7 +45,7 @@ def registerAccount(email,password):
     # Check if the username exists, if it does return false.
     try:
         #cur.execute("SELECT * FROM test WHERE id=%s",(username)) # Test
-        cur.execute("SELECT * FROM Students WHERE email=%s",(email))
+        cur.execute(f"SELECT * FROM Students WHERE email=%s",(email))
         result = cur.fetchall()
     except:
         return False
@@ -56,20 +56,20 @@ def registerAccount(email,password):
     #hashedPassword = bcrypt.hashpw(password.encode('utf8'),bcrypt.gensalt())
     try:
         #cur.execute("INSERT INTO test VALUES (%s,%s)",(username,hashedPassword)) # Test
-        cur.execute("INSERT INTO Students VALUES (%s,%s)",(email,hashedPassword))
+        cur.execute(f"INSERT INTO Students VALUES (%s,%s)",(email,hashedPassword))
     except:
         return False
     return True
 
 def createProfile(student_id, uni_id, name, graduation_year, major, hobbies, interests):
     try:
-        cur.execute('INSERT INTO student_profile VALUES(%s, %s, %s, %s, %s, %s, %s)', (student_id, uni_id, name, graduation_year, major, hobbies, interests))
+        cur.execute(f'INSERT INTO student_profile VALUES(%s, %s, %s, %s, %s, %s, %s)', (student_id, uni_id, name, graduation_year, major, hobbies, interests))
     except:
         return False
     return True
 
 def retrieveProfileData(student_id, uni_id):
-    cur.execute('SELECT * FROM student_profile WHERE student_id = %s AND uni_id = %s', (student_id, uni_id))
+    cur.execute(f'SELECT * FROM student_profile WHERE student_id = %s AND uni_id = %s', (student_id, uni_id))
     result = cur.fetchall()
     return result
 
