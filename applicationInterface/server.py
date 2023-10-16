@@ -60,15 +60,15 @@ def registerAccount(email, password):
         return False
     return True
 
-def createProfile(student_id, uni_id, name, graduation_year, major, hobbies, interests):
+def createProfile(email, name):
     try:
-        cur.execute(f"INSERT INTO student_profile VALUES('{student_id}', '{uni_id}', '{name}', '{graduation_year}', '{major}', '{hobbies}', '{interests}')")
+        cur.execute(f"INSERT INTO student_profile VALUES('{email}','{name}')")
     except:
         return False
     return True
 
-def retrieveProfileData(student_id, uni_id):
-    cur.execute(f"SELECT * FROM student_profile WHERE student_id = '{student_id}' AND uni_id = '{uni_id}'")
+def retrieveProfileData(email):
+    cur.execute(f"SELECT * FROM student_profile WHERE email = '{email}'")
     result = cur.fetchall()
     result = json.dumps(result)
     return result
@@ -89,13 +89,13 @@ class RootController(TGController):
     
     #Method to create student profile
     @expose('json')
-    def createStudentProfile(self, student_id, uni_id, name, graduation_year, major, hobbies, interests):
-        return {"result":createProfile(student_id, uni_id, name, graduation_year, major, hobbies, interests)}
+    def createStudentProfile(self, email, name):
+        return {"result":createProfile(email, name)}
     
     #Method to retrieve data of a student profile for a particular student
     @expose('json')
-    def getStudentProfileData(self, student_id, uni_id):
-        return {"result":retrieveProfileData(student_id, uni_id)}
+    def getStudentProfileData(self, email):
+        return {"result":retrieveProfileData(email)}
 
     
 config = AppConfig(minimal = True, root_controller = RootController())
