@@ -10,8 +10,6 @@ from wsgiref.simple_server import make_server
 conn = psycopg2.connect(
     host="localhost",
     database="commons",
-    # user="postgres",
-    # password="root"
     user="commons_dev",
     password="commons_dev"
 )
