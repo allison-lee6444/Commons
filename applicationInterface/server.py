@@ -3,6 +3,7 @@ import json
 import psycopg2
 import bcrypt
 import tg
+import datetime
 from tg import expose, TGController, AppConfig
 from wsgiref.simple_server import make_server
 
@@ -90,6 +91,20 @@ def retrieveProfileData(email):
     result = json.dumps(result)
     return result
 
+#Retrieve message functionality
+def retrieveMessages(chatroom_id):
+    cur.execute(f"SELECT * FROM messages WHERE chatroom_id='{chatroom_id}'")
+    result = json.dumps(cur.fetchall())
+    return result
+
+#Save message functionality
+def saveMessage(sender_id, chatroomID, message_sent):
+    date_time_sent = datetime.now()
+    cur.execute(f"INSERT INTO message(sender_id, chatroom_id, message_text, date_time_sent) VALUES('{sender_id}', '{chatroomID}', '{message_sent}', '{date_time_sent}')")
+    result = json.dumps(cur.fetchall())
+    return result
+
+
 # Check if a specific chatroom has had any new messages since the provided time.
 def checkForMessages(chatroomID,dateTime):
     try:
@@ -130,6 +145,14 @@ class RootController(TGController):
     @expose('json')
     def newMesages(self,chatroomID,dateTime):
         return checkForMessages(chatroomID,dateTime)
+    
+    @expose('json')
+    def saveMessages(self, sender_id, chatroomID, message_sent):
+        return saveMessage(sender_id, chatroomID, message_sent)
+    
+    @expose('json')
+    def getMessages(self, chatroom_id):
+        return retrieveMessages(chatroom_id)
 
 
 config = AppConfig(minimal=True, root_controller=RootController())

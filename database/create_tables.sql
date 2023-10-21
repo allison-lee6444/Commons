@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS takes (
 CREATE TABLE IF NOT EXISTS chatroom(
     id SERIAL, --bigint SERIAL, --AUTO_INCREMENT,
     uni_id varchar(255) NOT NULL,
-    course_id varchar(255) NOT NULL,
+    course_id varchar(255),
     primary key(id),
     foreign key(course_id, uni_id) REFERENCES course(id, uni_id) ON DELETE CASCADE
   
@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS in_chatroom (
     --`email` varchar(255) NOT NULL,
     student_id bigint NOT NULL, --varchar(255) NOT NULL,
     uni_id varchar(255) NOT NULL,
-    course_id varchar(255) NOT NULL,
+    course_id varchar(255), --previously was NOT NULL
     chatroom_id bigint NOT NULL,
     primary key(student_id, chatroom_id),
     --primary key(`email`, `chatroom_id`),
