@@ -1,6 +1,5 @@
 "use client"
 
-import Home from '../components/Home';
 import ChatPage from '../components/ChatPage';
 import Link from "next/link";
 
