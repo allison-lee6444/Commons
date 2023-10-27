@@ -10,8 +10,6 @@ from wsgiref.simple_server import make_server
 conn = psycopg2.connect(
     host="localhost",
     database="commons",
-    # user="postgres",
-    # password="root"
     user="commons_dev",
     password="commons_dev"
 )
@@ -92,6 +90,14 @@ def retrieveProfileData(email):
     result = json.dumps(result)
     return result
 
+# Check if a specific chatroom has had any new messages since the provided time.
+def checkForMessages(chatroomID,dateTime):
+    try:
+        cur.execute(f"SELECT * FROM message WHERE chatroom_id = {chatroomID} and date_time_sent > {dateTime}")
+        result = json.dumps(cur.fetchall())
+        return result
+    except:
+        return {"noNewMessages":True}
 
 # Main controller class.
 class RootController(TGController):
@@ -119,6 +125,11 @@ class RootController(TGController):
     @expose('json')
     def getStudentProfileData(self, email):
         return retrieveProfileData(email)
+    
+    # Method used by the front-end to check if there are any new messages.
+    @expose('json')
+    def newMesages(self,chatroomID,dateTime):
+        return checkForMessages(chatroomID,dateTime)
 
 
 config = AppConfig(minimal=True, root_controller=RootController())
