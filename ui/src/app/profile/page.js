@@ -35,7 +35,7 @@ function Profile() {
     if(received_reply){return;}
     try {
       const email = getCookie('email');
-      const response = await fetch('http://127.0.0.1:8060/getStudentProfileData/' + email);
+      const response = await fetch('http://127.0.0.1:3000/getStudentProfileData/' + email);
       data = await response.json();
     } catch (error) {
       setErrorMessages({name: "server", message: "Server Error: " + error})

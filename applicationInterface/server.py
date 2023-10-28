@@ -158,6 +158,6 @@ class RootController(TGController):
 config = AppConfig(minimal=True, root_controller=RootController())
 application = config.make_wsgi_app()
 
-print("Serving on port 8060...")
-server = make_server('', 8060, application)
+print("Serving on port 3000...")
+server = make_server('', 3000, application)
 server.serve_forever()

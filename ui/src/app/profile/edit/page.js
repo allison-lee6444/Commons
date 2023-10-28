@@ -64,7 +64,7 @@ function EditProfile() {
     // update user profile
     const postProfileData = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:8060/editStudentProfile/' + email + '?hobbies=' + hobbies + '&interests=' + interests + '&fname=' + fname + '&lname=' + lname + '&new_email=' + new_email);
+        const response = await fetch('http://127.0.0.1:3000/editStudentProfile/' + email + '?hobbies=' + hobbies + '&interests=' + interests + '&fname=' + fname + '&lname=' + lname + '&new_email=' + new_email);
         data = await response.json();
       } catch (error) {
         setErrorMessages({name: "server", message: "Server Error: " + error})
@@ -85,7 +85,7 @@ function EditProfile() {
     if(received_reply){return;}
     try {
       const cookie_email = getCookie('email');
-      const response = await fetch('http://127.0.0.1:8060/getStudentProfileData/' + cookie_email);
+      const response = await fetch('http://127.0.0.1:3000/getStudentProfileData/' + cookie_email);
       data = await response.json();
     } catch (error) {
       setErrorMessages({name: "server", message: "Server Error: " + error})
