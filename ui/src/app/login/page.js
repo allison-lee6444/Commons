@@ -36,7 +36,7 @@ export default function Login() {
     }
 
     const check_info = () => {
-      if (data.result) {
+      if (data.result){
         setIsSubmitted(true);
         document.cookie='email='+email;
         window.location.replace('/profile');

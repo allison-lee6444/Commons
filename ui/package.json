@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": " nodemon ./src/app/socket_server & next dev",
+    "dev": " nodemon ./src/app/socket_server/index.js & next dev",
     "build": "next build",
     "start": "next build; next start",
     "lint": "next lint"
@@ -18,7 +18,7 @@
     "react": "^18",
     "react-chat-elements": "^12.0.10",
     "react-dom": "^18",
-    "react-router-dom": "^6.16.0",
+    "react-router-dom": "^6.17.0",
     "socket.io": "^4.7.2",
     "socket.io-client": "^4.7.2"
   },
