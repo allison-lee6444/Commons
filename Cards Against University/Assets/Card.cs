@@ -4,15 +4,15 @@ using UnityEngine;
 using TMPro;
 
 //change MonoBehaviour to NetworkBehaviour later!!!
-public class Card : MonoBehaviour
+public class Card
 {
     public int id;
     public string text;
-    [SerializeField] TMPro.TextMeshProUGUI m_TextMeshPro;
+    //[SerializeField] TMPro.TextMeshProUGUI m_TextMeshPro;
 
     private void Start()
     {
-        m_TextMeshPro.text = text;
+        //m_TextMeshPro.text = text;
     }
 
     public Card()
