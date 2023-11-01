@@ -6,6 +6,7 @@ DROP TABLE IF EXISTS player;
 DROP TABLE IF EXISTS in_chatroom;
 DROP TABLE IF EXISTS chatroom;
 DROP TABLE IF EXISTS takes;
+DROP TABLE IF EXISTS section;
 DROP TABLE IF EXISTS student_profile;
 DROP TABLE IF EXISTS attends;
 DROP TABLE IF EXISTS student;
@@ -44,13 +45,24 @@ CREATE TABLE IF NOT EXISTS course (
     foreign key(uni_id) REFERENCES university(id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS section (
+    course_id varchar(255) NOT NULL,
+    uni_id varchar(255) NOT NULL,
+    section_id varchar(255) NOT NULL,
+    start_time timestamp,
+    end_time timestamp,
+    primary key(course_id, uni_id, section_id),
+    foreign key (course_id, uni_id) REFERENCES course(id, uni_id) ON DELETE CASCADE
+);
+
 CREATE TABLE IF NOT EXISTS takes (
     student_id bigint NOT NULL,
     uni_id varchar(255) NOT NULL,
     course_id varchar(255) NOT NULL,
+    section_id varchar(255) NOT NULL,
     primary key(student_id, uni_id, course_id),
     foreign key(student_id, uni_id) REFERENCES attends(student_id, uni_id) ON DELETE CASCADE,
-    foreign key(course_id, uni_id) REFERENCES course(id, uni_id) ON DELETE CASCADE
+    foreign key(course_id, uni_id, section_id) REFERENCES section(id, uni_id, section_id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS chatroom(
@@ -109,7 +121,9 @@ CREATE TABLE IF NOT EXISTS event(
     descript text,
     location_name varchar(255) NOT NULL,
     location_coordinates point NOT NULL,
-    timeslot timestamp, --datetime,
+    --timeslot timestamp, --datetime,
+    start_time timestamp,
+    end_time timestamp,
     event_id SERIAL, --bigint SERIAL NOT NULL, --AUTO_INCREMENT NOT NULL,
     primary key(event_id)
     --primary key(`event_name`, `chtaroom_id`, `timeslot`, `location`),
