@@ -49,8 +49,16 @@ CREATE TABLE IF NOT EXISTS section (
     course_id varchar(255) NOT NULL,
     uni_id varchar(255) NOT NULL,
     section_id varchar(255) NOT NULL,
-    start_time timestamp,
-    end_time timestamp,
+    semStartDate timestamp,
+    semEndDate timestamp,
+    year varchar(255),
+    meetsMon boolean,
+    meetsTue boolean,
+    meetsWed boolean,
+    meetsThu boolean,
+    meetsFri boolean,
+    meetsSat boolean,
+    meetsSun boolean,
     primary key(course_id, uni_id, section_id),
     foreign key (course_id, uni_id) REFERENCES course(id, uni_id) ON DELETE CASCADE
 );
@@ -115,8 +123,10 @@ CREATE TABLE IF NOT EXISTS player (
     foreign key(game_id) REFERENCES game(game_id) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS event(
+REATE TABLE IF NOT EXISTS event(
     event_name varchar(255) NOT NULL,
+    host_id bigint NOT NULL,
+    uni_id varchar(255) NOT NULL, 
     --`chatroom_id` bigint NOT NULL,
     descript text,
     location_name varchar(255) NOT NULL,
@@ -125,10 +135,12 @@ CREATE TABLE IF NOT EXISTS event(
     start_time timestamp,
     end_time timestamp,
     event_id SERIAL, --bigint SERIAL NOT NULL, --AUTO_INCREMENT NOT NULL,
-    primary key(event_id)
+    primary key(event_id),
+    foreign key (host_id, uni_id) REFERENCES attends(student_id, uni_id)
     --primary key(`event_name`, `chtaroom_id`, `timeslot`, `location`),
     --foreign key `chatroom_id` REFERENCES `chatroom`(`id`)
 );
+
 
 CREATE TABLE IF NOT EXISTS going_to_event(
     event_id bigint NOT NULL,
