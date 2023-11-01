@@ -110,6 +110,69 @@ def checkForMessages(chatroomID,dateTime):
     except:
         return {"noNewMessages":True}
 
+######################### V NEW 11/1 V #########################
+# Create a new event.
+def createEvent(eventName,hostID,description,locName,locCoord,startTime,endTime,eventID):
+    try:
+        cur.execute(f"INSERT INTO Event VALUES ('{eventName}',{hostID},'{description}','{locName}',{locCoord},{startTime},{endTime},{eventID})")
+        return True
+    except: 
+        return False
+
+# When a student hits the "join event" button.
+def studentJoinEvent(eventID,studentID,chatroomID):
+    try:
+        cur.execute(f"INSERT INTO going_to_event VALUES ({eventID},{studentID},{chatroomID})")
+        return True
+    except:
+        return False
+
+# User decided to leave an event.
+def deleteEvent(studentID,eventID):
+    try:
+        cur.execute(f"DELETE FROM going_to_event WHERE student_id = {studentID} AND event_id = {eventID}")
+        return True
+    except:
+        return False
+
+# Host decided to cancel an event.
+def cancelEvent(hostID,eventID):
+    try:
+        cur.execute(f"DELETE FROM event WHERE host_id = {hostID} AND event_id = {eventID}")
+
+        cur.execute(f"SELECT student_id FROM going_to_event WHERE event_id = {eventID}")
+        result = cur.fetchall()
+        for student in result:
+            deleteEvent(student[0],eventID)
+
+        return True
+    except:
+        return False
+
+# Get a list of all events a user is participating in.
+def getUserEvents(studentID):
+    try:
+        cur.execute(f"SELECT * FROM going_to_event LEFT JOIN event ON going_to_event.event_id = event.event_id WHERE going_to_event.studentID = {studentID}")
+        result = cur.fetchall()
+        return result
+    except:
+        return False
+
+# Get a list of all courses a user is in.
+def getUserCourses(studentID):
+    try:
+        cur.execute(f"SELECT * FROM takes LEFT JOIN section ON takes.uni_id = section.uni_id AND takes.course_id = section.course_id AND takes.section_id = section.section_id WHERE student_id = {studentID}")
+        result = cur.fetchall()
+        return result
+    except:
+        return False
+
+# Returns any users with a time conflict for a given event.
+def getTimeConflict():
+    pass
+
+######################### ^ NEW 11/1 ^ #########################
+
 # Main controller class.
 class RootController(RestController):
     def _before(self, *remainder, **params):
@@ -176,6 +239,44 @@ class RootController(RestController):
     @expose('json')
     def newMesages(self,chatroomID,dateTime):
         return checkForMessages(chatroomID,dateTime)
+
+    ######################### V NEW 11/1 V #########################
+
+    @expose('json')
+    def scheduleNewEvent(self,eventName,hostID,description,locName,locCoord,startTime,endTime,eventID):
+        return {"success":createEvent(eventName,hostID,description,locName,locCoord,startTime,endTime,eventID)}
+
+    @expose('json')
+    def joinEventClicked(self,eventID,studentID,chatroomID):
+        return {"success":studentJoinEvent(eventID,studentID,chatroomID)}
+
+    @expose('json')
+    def leaveEventClicked(self,studentID,eventID):
+        return {"success":deleteEvent(studentID,eventID)}
+
+    @expose('json')
+    def cancelScheduledEvent(self,hostID,eventID):
+        return {"success":cancelEvent(hostID,eventID)}
+
+    @expose('json')
+    def getUserEvents(self,studentID):
+        result = getUserEvents(studentID)
+        if not result:
+            return {"success":False}
+        return {"events":result}
+
+    @expose('json')
+    def getUserCourses(self,studentID):
+        result = getUserCourses(studentID)
+        if not result:
+            return {"success":False}
+        return {"courses":result}
+
+    @expose('json')
+    def identifyTimeConflict():
+        pass
+
+    ######################### ^ NEW 11/1 ^ #########################
 
 
 config = MinimalApplicationConfigurator()
