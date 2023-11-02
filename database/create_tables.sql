@@ -49,6 +49,8 @@ CREATE TABLE IF NOT EXISTS section (
     course_id varchar(255) NOT NULL,
     uni_id varchar(255) NOT NULL,
     section_id varchar(255) NOT NULL,
+    start_time time,
+    end_time time,
     semStartDate timestamp,
     semEndDate timestamp,
     year varchar(255),
