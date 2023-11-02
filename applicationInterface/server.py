@@ -5,6 +5,7 @@ import bcrypt
 import tg
 from tg import expose, TGController, AppConfig
 from wsgiref.simple_server import make_server
+import datetime
 
 # Create database connection.
 conn = psycopg2.connect(
@@ -150,15 +151,87 @@ def getUserEvents(studentID):
 # Get a list of all courses a user is in.
 def getUserCourses(studentID):
     try:
-        cur.execute(f"SELECT * FROM takes LEFT JOIN section ON takes.uni_id = section.uni_id AND takes.course_id = section.course_id AND takes.section_id = section.section_id WHERE student_id = {studentID}")
+        cur.execute(f"SELECT * FROM takes LEFT JOIN section ON takes.uni_id = section.uni_id AND takes.course_id = section.course_id AND takes.section_id = section.section_id WHERE takes.student_id = {studentID}")
         result = cur.fetchall()
         return result
     except:
         return False
 
-# Returns any users with a time conflict for a given event.
-def getTimeConflict():
-    pass
+# Takes a DateTime object and returns a list of (CourseStartEpoch,CourseEndEpoch) for each course that meets on the same day.
+def courseDataToEpoch(dateTimeObj):
+    output = []
+
+    # Used to convert a day of the week to the name of the column that stores whether or not a course meets on that day.
+    dayToCol = {
+        "Monday":"meetsMon",
+        "Tuesday":"meetsTue",
+        "Wednesday":"meetsWed",
+        "Thursday":"meetsThu",
+        "Friday":"meetsFri",
+        "Saturday":"meetsSat",
+        "Sunday":"meetsSun"
+    }
+
+    # Takes the DateTime and gets the day of the week.
+    dayOfWeek = dateTimeObj.strftime('%A')
+    # Gets only the date from the Datetime obj.
+    date = dateTimeObj.date()
+
+    # Select (CourseStartTime,CourseEndTime) if a course meets on the same day of the week as the event and the event occurs during the
+    # semester.
+    query = (
+        f"SELECT section.start_time,section.end_time"
+        f" FROM takes LEFT JOIN section ON takes.uni_id = section.uni_id"
+        f" AND takes.course_id = section.course_id AND takes.section_id = section.section_id WHERE "
+        f"takes.student_id = {studentID} AND section.{dayToCol[dayOfWeek]} = 'True' AND section.semStartDate < "
+        f"{date} AND section.semEndDate > {date}"
+    )
+    cur.execute(query)
+    result = cur.fetchall()
+
+    # For all course times, add them to the date of the event, convert them to epoch time, and add it to the output list.
+    # If an event occurs during the semester, and the event day of the week is on the same day as when a class meets, there may be a conflict.
+    for time in result:
+        courseStartTime = date+" "+time[0]
+        courseStartEpoch = (datetime.strptime(courseStartTime, format)).timestamp()
+        courseEndTime = date+" "+time[1]
+        courseEndEpoch = (datetime.strptime(courseEndTime, format)).timestamp()
+        output.append((courseStartEpoch,courseEndEpoch))
+    return output
+
+# For a given event's start/end times and a student, return True if the student has a time conflict.  False otherwise.
+def identifiedTimeConflict(startTime,endTime,studentID):
+    format = '%Y-%m-%d %H:%M:%S'
+
+    # > Convert start/end time of event into DateTime obj.
+    eventStartDateTime = datetime.strptime(startTime, format)
+    eventEndDateTime = datetime.strptime(endTime, format)
+
+    # > Take the start/end DateTimes of the event and convert them into epoch values.
+    startEpoch = eventStartDateTime.timestamp()
+    endEpoch = eventEndDateTime.timestamp()
+
+    # > Get all events the student is in as a list of tuples of type (EventStartEpoch,EventEndEpoch).
+    cur.execute(f"SELECT event.start_time,event.end_time FROM going_to_event LEFT JOIN event ON going_to_event.event_id = event.event_id WHERE going_to_event.studentID = {studentID}")
+    eventResult = cur.fetchall()
+
+    # Go though eventResult (ex: [("YYYY-MM-DD HH:mm:ss", "YYYY-MM-DD HH:mm:ss"), ...]) and convert them into epoch values.
+    for i in range(len(eventResult)):
+        newStart = (datetime.strptime(eventResult[i][0], format)).timestamp()
+        newEnd = (datetime.strptime(eventResult[i][1], format)).timestamp()
+        eventResult[i] = (newStart,newEnd)
+
+    # > Get all courses the student is in as a list of tuples of type (CourseStartEpoch,CourseEndEpoch).
+    courseResult = []
+    courseResult.extend(courseDataToEpoch(courseQueryResult,eventStartDateTime))
+    courseResult.extend(courseDataToEpoch(courseQueryResult,eventEndDateTime))
+
+    # > Go through the scheduled events/courses on the same days as the event and see if a conflict exists.
+    schedule = eventResult + courseResult
+    for i in schedule:
+        if (startEpoch <= i[1]) and (endEpoch >= i[0]):
+            return True
+    return False
 
 ######################### ^ NEW 11/1 ^ #########################
 
@@ -227,8 +300,8 @@ class RootController(TGController):
         return {"courses":result}
 
     @expose('json')
-    def identifyTimeConflict():
-        pass
+    def identifyTimeConflict(self,startTime,endTime,studentID):
+        return {"timeConflictExists":identifiedTimeConflict(startTime,endTime,studentID)}
 
     ######################### ^ NEW 11/1 ^ #########################
 
