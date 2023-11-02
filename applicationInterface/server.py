@@ -181,17 +181,17 @@ def courseDataToEpoch(dateTimeObj):
     # Select (CourseStartTime,CourseEndTime) if a course meets on the same day of the week as the event and the event occurs during the
     # semester.
     # <<< [TEST - UNCOMMENT AFTER TEST] >>>
-    """query = (
+    query = (
         f"SELECT section.start_time,section.end_time"
         f" FROM takes LEFT JOIN section ON takes.uni_id = section.uni_id"
         f" AND takes.course_id = section.course_id AND takes.section_id = section.section_id WHERE "
         f"takes.student_id = {studentID} AND section.{dayToCol[dayOfWeek]} = 'True' AND section.semStartDate < "
         f"{date} AND section.semEndDate > {date}"
-    )"""
+    )
     # <<< [TEST - UNCOMMENT AFTER TEST] >>>
-    # cur.execute(query) <<< [TEST - UNCOMMENT AFTER TEST] >>>
-    # result = cur.fetchall() <<< [TEST - UNCOMMENT AFTER TEST] >>>
-    result = [("07:00:00","07:59:59"),("15:00:00","16:00:00"),("16:30:00","18:30:00")] # <<< [TEST - DELETE AFTER TEST] >>>
+    cur.execute(query) #<<< [TEST - UNCOMMENT AFTER TEST] >>>
+    result = cur.fetchall() #<<< [TEST - UNCOMMENT AFTER TEST] >>>
+    #result = [("07:00:00","07:59:59"),("15:00:00","16:00:00"),("16:30:00","18:30:00")] # <<< [TEST - DELETE AFTER TEST] >>>
 
     # For all course times, add them to the date of the event, convert them to epoch time, and add it to the output list.
     # If an event occurs during the semester, and the event day of the week is on the same day as when a class meets, there may be a conflict.
@@ -216,9 +216,9 @@ def identifiedTimeConflict(startTime,endTime,studentID):
     endEpoch = eventEndDateTime.timestamp()
 
     # > Get all events the student is in as a list of tuples of type (EventStartEpoch,EventEndEpoch).
-    #cur.execute(f"SELECT event.start_time,event.end_time FROM going_to_event LEFT JOIN event ON going_to_event.event_id = event.event_id WHERE going_to_event.studentID = {studentID}") <<< [TEST - UNCOMMENT AFTER TEST] >>>
-    #eventResult = cur.fetchall() <<< [TEST - UNCOMMENT AFTER TEST] >>>
-    eventResult = [("2023-11-03 07:00:00","2023-11-03 08:30:00"),("2023-11-03 15:00:00","2023-11-03 16:00:00"),("2023-11-04 10:00:00","2023-11-04 12:00:00")] # <<< [TEST - DELETE AFTER TEST] >>>
+    cur.execute(f"SELECT event.start_time,event.end_time FROM going_to_event LEFT JOIN event ON going_to_event.event_id = event.event_id WHERE going_to_event.studentID = {studentID}") #<<< [TEST - UNCOMMENT AFTER TEST] >>>
+    eventResult = cur.fetchall() #<<< [TEST - UNCOMMENT AFTER TEST] >>>
+    #eventResult = [("2023-11-03 07:00:00","2023-11-03 08:30:00"),("2023-11-03 15:00:00","2023-11-03 16:00:00"),("2023-11-04 10:00:00","2023-11-04 12:00:00")] # <<< [TEST - DELETE AFTER TEST] >>>
 
     # Go though eventResult (ex: [("YYYY-MM-DD HH:mm:ss", "YYYY-MM-DD HH:mm:ss"), ...]) and convert them into epoch values.
     for i in range(len(eventResult)):
@@ -312,16 +312,16 @@ class RootController(TGController):
     def identifyTimeConflict(self,startTime,endTime,studentID):
         return {"timeConflictExists":identifiedTimeConflict(startTime,endTime,studentID)}
 
-    # FOR TESTING ONLY - DELETE BEFORE SUBMISSION #
-    @expose('json')
+    # <<< [TEST - DELETE AFTER TEST] >>> #
+    """@expose('json')
     def test(self):
         # Fake event start and end time.
         startTime = "2023-11-03 08:00:00"
         endTime = "2023-11-03 10:00:00"
         # Fake student ID.
         studentID = "abc123"
-        return {"timeConflictExists":identifiedTimeConflict(startTime,endTime,studentID)}
-    # FOR TESTING ONLY - DELETE BEFORE SUBMISSION #
+        return {"timeConflictExists":identifiedTimeConflict(startTime,endTime,studentID)}"""
+    # <<< [TEST - DELETE AFTER TEST] >>> #
 
     ######################### ^ NEW 11/1 ^ #########################
 
