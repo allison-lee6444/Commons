@@ -7,6 +7,7 @@ import datetime
 from tg import expose, TGController, AppConfig
 from wsgiref.simple_server import make_server
 
+
 # Create database connection.
 conn = psycopg2.connect(
     host="localhost",
@@ -113,6 +114,17 @@ def checkForMessages(chatroomID,dateTime):
         return result
     except:
         return {"noNewMessages":True}
+    
+#Verify a student's identity through their university institution -- get the student_id, uni_id, email values from the fake server
+def verifyIdentity(student_id, uni_id, email):
+    cur.execute(f"SELECT * FROM attends WHERE student_id={student_id} and uni_id={uni_id} and email={email}")
+    result = cur.fetchall()
+    if (len(result) == 0):
+        return False
+    else:
+        return True
+
+
 
 # Main controller class.
 class RootController(TGController):
@@ -153,6 +165,10 @@ class RootController(TGController):
     @expose('json')
     def getMessages(self, chatroom_id):
         return retrieveMessages(chatroom_id)
+    
+    @expose('json')
+    def verifyIdentity(self, student_id, uni_id, email):
+        return verifyIdentity(student_id, uni_id, email)
 
 
 config = AppConfig(minimal=True, root_controller=RootController())
