@@ -4,6 +4,7 @@ DROP TABLE IF EXISTS going_to_event;
 DROP TABLE IF EXISTS message;
 DROP TABLE IF EXISTS player;
 DROP TABLE IF EXISTS in_chatroom;
+DROP TABLE IF EXISTS flashcard;
 DROP TABLE IF EXISTS chatroom;
 DROP TABLE IF EXISTS takes;
 DROP TABLE IF EXISTS section;
@@ -82,6 +83,15 @@ CREATE TABLE IF NOT EXISTS chatroom(
     primary key(id),
     foreign key(course_id, uni_id) REFERENCES course(id, uni_id) ON DELETE CASCADE
   
+);
+
+CREATE TABLE IF NOT EXISTS flashcard(
+    id SERIAL,
+    front text,
+    back text,
+    chatroom_id bigint NOT NULL,
+    primary key(id, chatroom_id),
+    foreign key(chatroom_id) REFERENCES chatroom(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS in_chatroom (
