@@ -50,7 +50,7 @@ def verifyAccount(email, password):
 # Register a new account.
 def registerAccount(email, password):
     # Check if the username exists, if it does return false.
-    cur.execute(f"SELECT * FROM Student WHERE email=%(email)s", {'email': email})
+    cur.execute("SELECT * FROM Student WHERE email=%(email)s", {'email': email})
     result = cur.fetchall()
 
     if len(result) != 0:
@@ -103,7 +103,8 @@ def retrieveProfileData(email):
 # Check if a specific chatroom has had any new messages since the provided time.
 def checkForMessages(chatroomID,dateTime):
     try:
-        cur.execute(f"SELECT * FROM message WHERE chatroom_id = {chatroomID} and date_time_sent > {dateTime}")
+        cur.execute("SELECT * FROM message WHERE chatroom_id = %(chatroomID)s and date_time_sent > %(dateTime)s",
+                    {"chatroomID":chatroomID,"dateTime":dateTime})
         result = json.dumps(cur.fetchall())
         return result
     except:
