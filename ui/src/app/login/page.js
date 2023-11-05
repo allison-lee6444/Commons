@@ -10,6 +10,7 @@ export default function Login() {
   const [errorMessages, setErrorMessages] = useState({});
   const [isSubmitted, setIsSubmitted] = useState(false);
 
+
   // Generate JSX code for error message
   const renderErrorMessage = (name) =>
     name === errorMessages.name && (
@@ -28,28 +29,29 @@ export default function Login() {
     // Find user login info
     const fetchData = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:8060/authenticateUserSignIn/' + email + '?password=' + password);
+        const response = await fetch('http://127.0.0.1:8060/authenticateUserSignIn/?email=' + encodeURIComponent(email) + '?&password=' + encodeURIComponent(password));
         data = await response.json();
       } catch (error) {
         setErrorMessages({name: "server", message: "Server Error: "+error})
       }
     }
 
-    const check_info = () => {
+    const set_cookie = () => {
       if (data.result) {
         setIsSubmitted(true);
-        document.cookie='email='+email;
+        document.cookie='sessionid='+data.sessionid;
         window.location.replace('/profile');
       } else {
         setErrorMessages({name: "input", message: input_error});
       }
     }
 
-    fetchData().then(check_info);
+    fetchData().then(set_cookie);
 
   };
 
-
+  // remove sessionid cookies whenever user goes back to login page
+  document.cookie = 'sessionid' +'=; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
   return (
     <div className="flex flex-col items-center md:flex-row md:h-screen">
       <div className="flex items-center justify-center w-full md:w-1/2">
