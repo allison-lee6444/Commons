@@ -8,6 +8,10 @@ DROP TABLE IF EXISTS course;
 CREATE TABLE IF NOT EXISTS student (
     email varchar(255) NOT NULL,
     student_id bigint NOT NULL,
+    fname varchar(255),
+    lname varchar(255),
+    major varchar(255),
+    graduation_year int,
     primary key(email, student_id)
 );
 
