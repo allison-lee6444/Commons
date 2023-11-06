@@ -39,11 +39,6 @@ function EditProfile() {
       <div className="error text-red-700">{errorMessages.message}</div>
     );
 
-  const errors = {
-    email: "Input email has already been used by an account. Please log in.",
-    password: "Password error"
-  };
-
   function getCookie(name) {
     function escape(s) {
       return s.replace(/([.*+?\^$(){}|\[\]\/\\])/g, '\\$1');
@@ -75,13 +70,43 @@ function EditProfile() {
     // update user profile
     const postProfileData = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:8060/editStudentProfile/?sessionid=' + sessionid + '?hobbies=' + encodeURIComponent(hobbies) + '&interests=' + encodeURIComponent(interests) + '&fname=' + encodeURIComponent(fname) + '&lname=' + encodeURIComponent(lname) + '&new_email=' + encodeURIComponent(new_email), {method: "POST"});
+        const response = await fetch(
+          'http://127.0.0.1:8060/editStudentProfile/?sessionid=' + sessionid + '&hobbies=' +
+          encodeURIComponent(hobbies) + '&interests=' + encodeURIComponent(interests) + '&fname=' +
+          encodeURIComponent(fname) + '&lname=' + encodeURIComponent(lname) + '&new_email=' +
+          encodeURIComponent(new_email), {method: "POST"}
+        );
         data = await response.json();
       } catch (error) {
         setErrorMessages({name: "server", message: "Server Error: " + error})
       }
     }
-    postProfileData().then(() => window.location.replace('/profile'));
+    const changePassword = async () => {
+      try {
+        const response = await fetch(
+          'http://127.0.0.1:8060/changePassword/?sessionid=' + sessionid + '&current_pw=' +
+          encodeURIComponent(current_pw) + '&new_pw=' + encodeURIComponent(new_pw), {method: "POST"}
+        );
+        data = await response.json();
+      } catch (error) {
+        setErrorMessages({name: "server", message: "Server Error: " + error})
+      }
+      if (!data.result) {
+        setErrorMessages({name: "password", message: "Incorrect password."})
+      }
+    }
+
+    postProfileData().then(() => {
+      if (current_pw && new_pw) {
+        if (current_pw === new_pw) {
+          setErrorMessages({name: "password", message: "Current password and new password is the same."})
+          return;
+        }
+        changePassword().then(() => {if(data.result) {window.location.replace('/profile')}})
+      } else {
+        window.location.replace('/profile')
+      }
+    });
 
   };
 
@@ -120,14 +145,6 @@ function EditProfile() {
     set_received_reply(true);
   })
 
-
-  function set_profile_attr(attr_name, data) {
-    set_profile_info(
-      prevState => {
-        prevState[attr_name] = data;
-        return prevState;
-      });
-  }
 
   // load when api reply received and variables populated
   return (received_reply && (
@@ -234,6 +251,9 @@ function EditProfile() {
                     <button type="reset" className="btn btn-default">Cancel</button>
                   </div>
                 </div>
+                {renderErrorMessage("server")}
+                {renderErrorMessage("password")}
+
               </div>
             </div>
           </form>

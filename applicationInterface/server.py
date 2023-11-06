@@ -29,7 +29,6 @@ sessionid_dict = {}  # key: sessionid, value: email
 def verifyAccount(email, password):
     # Check if we find a username and password that matches.
     try:
-        cur.execute("SELECT * FROM student WHERE email=%(email)s", {'email': email})
         cur.execute("SELECT salt FROM student WHERE email=%(email)s", {'email': email})
         salt = cur.fetchall()[0][0]
         hashedPassword = bcrypt.hashpw(password.encode('utf8'), salt.encode('utf8')).decode('utf8')
@@ -62,7 +61,7 @@ def registerAccount(email, password):
     try:
         # cur.execute("INSERT INTO test VALUES (%s,%s)",(username,hashedPassword)) # Test
         cur.execute("INSERT INTO Student VALUES (%(email)s,%(hashedPassword)s,%(salt)s)",
-                    {{'email': email, 'hashedPassword': hashedPassword, 'salt': salt}})
+                    {'email': email, 'hashedPassword': hashedPassword, 'salt': salt})
     except:
         return False
     cur.execute("SELECT * FROM Student WHERE email=%(email)s", {'email': email})
@@ -100,15 +99,33 @@ def retrieveProfileData(email):
     result = json.dumps(result)
     return result
 
+
 # Check if a specific chatroom has had any new messages since the provided time.
-def checkForMessages(chatroomID,dateTime):
+def checkForMessages(chatroomID, dateTime):
     try:
         cur.execute("SELECT * FROM message WHERE chatroom_id = %(chatroomID)s and date_time_sent > %(dateTime)s",
-                    {"chatroomID":chatroomID,"dateTime":dateTime})
+                    {"chatroomID": chatroomID, "dateTime": dateTime})
         result = json.dumps(cur.fetchall())
         return result
     except:
-        return {"noNewMessages":True}
+        return {"noNewMessages": True}
+
+
+def changePassword(email, current_pw, new_pw):
+    if not verifyAccount(email, current_pw):
+        return False
+
+    cur.execute("SELECT salt FROM student WHERE email=%(email)s", {'email': email})
+    salt = cur.fetchall()[0][0]
+    hashedPassword = bcrypt.hashpw(new_pw.encode('utf8'), salt.encode('utf8')).decode('utf8')
+
+    try:
+        cur.execute("UPDATE student SET password=%(hashedPassword)s WHERE email=%(email)s",
+                    {'email': email, 'hashedPassword': hashedPassword})
+    except:
+        return False
+    return True
+
 
 # Main controller class.
 class RootController(RestController):
@@ -163,19 +180,35 @@ class RootController(RestController):
     @is_method('POST')
     def editStudentProfile(self, sessionid, hobbies, interests, fname, lname, new_email):
         email = self.check_session_id(sessionid)
+        if email is None:
+            return {"result": False}
+
+        if email != new_email:
+            sessionid_dict[sessionid] = new_email
+
         return {
             "result": editProfile(email, hobbies, interests, fname, lname, new_email)}
+
+    # Method to change password
+    @expose('json')
+    @is_method('POST')
+    def changePassword(self, sessionid, current_pw, new_pw):
+        email = self.check_session_id(sessionid)
+        if email is None:
+            return {"result": False}
+
+        return {"result": changePassword(email, current_pw, new_pw)}
 
     # Method to retrieve data of a student profile for a particular student
     @expose('json')
     def getStudentProfileData(self, sessionid):
         email = self.check_session_id(sessionid)
         return retrieveProfileData(email)
-    
+
     # Method used by the front-end to check if there are any new messages.
     @expose('json')
-    def newMesages(self,chatroomID,dateTime):
-        return checkForMessages(chatroomID,dateTime)
+    def newMesages(self, chatroomID, dateTime):
+        return checkForMessages(chatroomID, dateTime)
 
 
 config = MinimalApplicationConfigurator()
