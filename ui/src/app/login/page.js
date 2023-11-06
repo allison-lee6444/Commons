@@ -29,7 +29,7 @@ export default function Login() {
     // Find user login info
     const fetchData = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:8060/authenticateUserSignIn/?email=' + encodeURIComponent(email) + '?&password=' + encodeURIComponent(password));
+        const response = await fetch('http://127.0.0.1:8060/authenticateUserSignIn/?email=' + encodeURIComponent(email) + '&password=' + encodeURIComponent(password));
         data = await response.json();
       } catch (error) {
         setErrorMessages({name: "server", message: "Server Error: "+error})
@@ -50,8 +50,7 @@ export default function Login() {
 
   };
 
-  // remove sessionid cookies whenever user goes back to login page
-  document.cookie = 'sessionid' +'=; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+
   return (
     <div className="flex flex-col items-center md:flex-row md:h-screen">
       <div className="flex items-center justify-center w-full md:w-1/2">
