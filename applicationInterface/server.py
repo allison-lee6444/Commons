@@ -7,6 +7,7 @@ from events import *
 from profiles import *
 from flashcard import *
 from import_schedules import *
+from verify_identity import *
 
 app = FastAPI()
 
@@ -97,6 +98,10 @@ def deleteFlashcardFromChatroom(self, chatroom_id, front_text, back_text):
 @app.get("/importStudentSchedule")
 def importStudentSchedule(self, values):
     return {"success":importStudentSchedule(values)}
+
+@app.get("/verifyStudent")
+def verifyStudent(self, student_id, uni_id, email, fname, lname, graduation_year):
+    return {"success":verifyIdentity(student_id, uni_id, email, fname, lname, graduation_year)}
 
 # <<< [TEST - DELETE AFTER TEST] >>> #
 """@app.get("/test")
