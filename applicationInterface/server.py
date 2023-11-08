@@ -1,196 +1,96 @@
-import json
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+# Backend Functions
+from authentication import *
+from chatroom import *
+from events import *
+from profiles import *
 
-import psycopg2
-import bcrypt
-import tg
-import datetime
-from tg import expose, TGController, AppConfig
-from wsgiref.simple_server import make_server
+app = FastAPI()
 
-
-# Create database connection.
-conn = psycopg2.connect(
-    host="localhost",
-    database="commons",
-    user="commons_dev",
-    password="commons_dev"
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"]
 )
-"""
-user="commons_dev",
-password="commons_dev"
-"""
 
-# Create cursor to interact with the database.
-cur = conn.cursor()
+# Method to handle user authentication requests.
+@app.get("/authenticateUserSignIn")
+def authenticateUserSignIn(self, email, password):
+    return {"result": verifyAccount(email, password)}
 
+# Method to handle new user registration.
+@app.get("/registerNewUser")
+def registerNewUser(self, email, password):
+    return {"result": registerAccount(email, password)}
 
-# Verify if an account already exists.
-def verifyAccount(email, password):
-    # Check if we find a username and password that matches.
-    try:
-        cur.execute(f"SELECT * FROM student WHERE email='{email}'")
-        cur.execute(f"SELECT salt FROM student WHERE email='{email}'")
-        salt = cur.fetchall()[0][0]
-        hashedPassword = bcrypt.hashpw(password.encode('utf8'), salt.encode('utf8')).decode('utf8')
-        # cur.execute("SELECT * FROM test WHERE id=%s and number=%s",(username,hashedPassword)) # Test
-        cur.execute(f"SELECT * FROM student WHERE email='{email}' and password='{hashedPassword}'")
-        result = cur.fetchall()
-    except:
-        return False
+# Method to create student profile
+@app.get("/editStudentProfile")
+def editStudentProfile(self,email, hobbies, interests, fname, lname,new_email):
+    print(email, hobbies, interests, fname, lname,new_email)
+    return {
+        "result": editProfile(email,hobbies, interests, fname, lname,new_email)}
 
-    # Returns true if authentication was a success.
-    if len(result) == 1:
-        return True
-    # False otherwise.
-    return False
+# Method to retrieve data of a student profile for a particular student
+@app.get("/getStudentProfileData")
+def getStudentProfileData(self, email):
+    return retrieveProfileData(email)
 
+# Method used by the front-end to check if there are any new messages.
+@app.get("/newMesages")
+def newMesages(self,chatroomID,dateTime):
+    return checkForMessages(chatroomID,dateTime)
 
-# Register a new account.
-def registerAccount(email, password):
-    # Check if the username exists, if it does return false.
-    cur.execute(f"SELECT * FROM Student WHERE email='{email}'")
-    result = cur.fetchall()
+# Method to create a new event and save it in the DB.
+@app.get("/scheduleNewEvent")
+def scheduleNewEvent(self,eventName,hostID,description,locName,locCoord,startTime,endTime,eventID):
+    return {"success":createEvent(eventName,hostID,description,locName,locCoord,startTime,endTime,eventID)}
 
-    if len(result) != 0:
-        return False
+# Method called when a student joins a event.
+@app.get("/joinEventClicked")
+def joinEventClicked(self,eventID,studentID,chatroomID):
+    return {"success":studentJoinEvent(eventID,studentID,chatroomID)}
 
-    salt = bcrypt.gensalt()
-    hashedPassword = bcrypt.hashpw(password.encode('utf8'), salt).decode('utf8')
-    salt = salt.decode('utf8')
-    try:
-        # cur.execute("INSERT INTO test VALUES (%s,%s)",(username,hashedPassword)) # Test
-        cur.execute(f"INSERT INTO Student VALUES ('{email}','{hashedPassword}','{salt}')")
-    except:
-        return False
-    cur.execute(f"SELECT * FROM Student WHERE email='{email}'")
-    result = cur.fetchall()
-    print(result)
-    return True
+# Method called when a student leaves a event.
+@app.get("/leaveEventClicked")
+def leaveEventClicked(self,studentID,eventID):
+    return {"success":deleteEvent(studentID,eventID)}
 
+# Method called when the host of an event cancels the event.
+@app.get("/cancelScheduledEvent")
+def cancelScheduledEvent(self,hostID,eventID):
+    return {"success":cancelEvent(hostID,eventID)}
 
-def editProfile(email, hobbies, interests, fname, lname, new_email):
-    try:
-        cur.execute(f"SELECT * FROM student_profile WHERE email='{email}'")
-        result = cur.fetchall()
+# Method called to get all events a student is apart of.
+@app.get("/getUserEvents")
+def getUserEvents(self,studentID):
+    result = getUserEvents(studentID)
+    if not result:
+        return {"success":False}
+    return {"events":result}
 
-        if len(result) != 0:
-            cur.execute(
-                f"UPDATE student_profile SET email='{new_email}',hobbies='{hobbies}',interests='{interests}',fname='{fname}',lname='{lname}' WHERE email='{email}'"
-            )
-        else:
-            cur.execute(
-                f"INSERT INTO student_profile(email, hobbies, interests, fname, lname) VALUES('{email}', '{hobbies}', '{interests}', '{fname}', '{lname}')"
-            )
-    except:
-        return False
-    return True
+# Method called to get all courses a student is in.
+@app.get("/getUserCourses")
+def getUserCourses(self,studentID):
+    result = getUserCourses(studentID)
+    if not result:
+        return {"success":False}
+    return {"courses":result}
 
+# Method called to help a student identify if joining an event will create a time conflict.
+@app.get("/identifyTimeConflict")
+def identifyTimeConflict(self,startTime,endTime,studentID):
+    return {"timeConflictExists":identifiedTimeConflict(startTime,endTime,studentID)}
 
-def retrieveProfileData(email):
-    cur.execute(f"SELECT * FROM student_profile WHERE email='{email}'")
-    result = cur.fetchall()
-    result = json.dumps(result)
-    return result
-
-#Retrieve message functionality
-def retrieveMessages(chatroom_id):
-    cur.execute(f"SELECT * FROM messages WHERE chatroom_id='{chatroom_id}'")
-    result = json.dumps(cur.fetchall())
-    return result
-
-#Save message functionality
-def saveMessage(sender_id, chatroomID, message_sent):
-    date_time_sent = datetime.now()
-    cur.execute(f"INSERT INTO message(sender_id, chatroom_id, message_text, date_time_sent) VALUES('{sender_id}', '{chatroomID}', '{message_sent}', '{date_time_sent}')")
-    result = json.dumps(cur.fetchall())
-    return result
-
-
-# Check if a specific chatroom has had any new messages since the provided time.
-def checkForMessages(chatroomID,dateTime):
-    try:
-        cur.execute(f"SELECT * FROM message WHERE chatroom_id = {chatroomID} and date_time_sent > {dateTime}")
-        result = json.dumps(cur.fetchall())
-        return result
-    except:
-        return {"noNewMessages":True}
-    
-#Verify a student's identity through their university institution -- get the student_id, uni_id, email values from the fake server
-def verifyIdentity(student_id, uni_id, email, fname, lname, graduation_year):
-    cur.execute(f"SELECT * FROM attends WHERE student_id='{student_id}' and uni_id='{uni_id}' and email='{email}'")
-    result = cur.fetchall()
-    if (len(result) == 0):
-        return False
-    else:
-        cur.execute(f"INSERT INTO student_profile(student_id, uni_id, email, fname, lname, graduation_year) VALUES('{student_id}', '{uni_id}', '{email}', '{fname}', '{lname}', '{graduation_year}')")
-        return True
-    
-
-#Import student schedules
-def ImportStudentSchedule(values):
-    #values is a dictionary structured like this:
-    # {'student_id' : 2363839, 'uni_id' : 'NYU', 'schedule' : [['CS1223', 'A'], ['CS554', 'B']]}
-    # so values['schedule'] is a list of tuples which contain a course id and a section id
-    try:
-        student_id = values['student_id']
-        uni_id = values['uni_id']
-        for entry in values['schedule']:
-            course_id = entry[0]
-            section_id = entry[1]
-            cur.execute(f"INSERT INTO takes(student_id, uni_id, course_id, section_id) VALUES('{student_id}', '{uni_id}', '{course_id}', '{section_id}')")
-        return True
-    except:
-        return False
-
-
-# Main controller class.
-class RootController(TGController):
-    def _before(self, *remainder, **params):
-        tg.response.headers.update({'Access-Control-Allow-Origin': '*'})
-
-    # Method to handle user authentication requests.
-    @expose('json')
-    def authenticateUserSignIn(self, email, password):
-        return {"result": verifyAccount(email, password)}
-
-    # Method to handle new user registration.
-    @expose('json')
-    def registerNewUser(self, email, password):
-        return {"result": registerAccount(email, password)}
-
-    # Method to create student profile
-    @expose('json')
-    def editStudentProfile(self,email, hobbies, interests, fname, lname,new_email):
-        print(email, hobbies, interests, fname, lname,new_email)
-        return {
-            "result": editProfile(email,hobbies, interests, fname, lname,new_email)}
-
-    # Method to retrieve data of a student profile for a particular student
-    @expose('json')
-    def getStudentProfileData(self, email):
-        return retrieveProfileData(email)
-    
-    # Method used by the front-end to check if there are any new messages.
-    @expose('json')
-    def newMesages(self,chatroomID,dateTime):
-        return checkForMessages(chatroomID,dateTime)
-    
-    @expose('json')
-    def saveMessages(self, sender_id, chatroomID, message_sent):
-        return saveMessage(sender_id, chatroomID, message_sent)
-    
-    @expose('json')
-    def getMessages(self, chatroom_id):
-        return retrieveMessages(chatroom_id)
-    
-    @expose('json')
-    def verifyIdentity(self, student_id, uni_id, email):
-        return verifyIdentity(student_id, uni_id, email)
-
-
-config = AppConfig(minimal=True, root_controller=RootController())
-application = config.make_wsgi_app()
-
-print("Serving on port 3000...")
-server = make_server('', 3000, application)
-server.serve_forever()
+# <<< [TEST - DELETE AFTER TEST] >>> #
+"""@app.get("/test")
+def test(self):
+    # Fake event start and end time.
+    startTime = "2023-11-03 08:00:00"
+    endTime = "2023-11-03 10:00:00"
+    # Fake student ID.
+    studentID = "abc123"
+    return {"timeConflictExists":identifiedTimeConflict(startTime,endTime,studentID)}"""
+# <<< [TEST - DELETE AFTER TEST] >>> #

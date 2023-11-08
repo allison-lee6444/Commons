@@ -25,7 +25,7 @@ export default function Signup() {
 
     const fetchData = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:3000/registerNewUser/' + email + '?password=' + password);
+        const response = await fetch('http://127.0.0.1:8060/registerNewUser/?email=' + encodeURIComponent(email) + '&password=' + encodeURIComponent(password), {method:"POST"});
         data = await response.json();
       } catch (error) {
         setErrorMessages({name: "server", message: "Server Error: " + error})
@@ -36,17 +36,17 @@ export default function Signup() {
     // call some api like the above line
 
     // Compare user info
-    const check_info = () => {
+    const add_cookie = () => {
       if (!data.result) {
         setErrorMessages({name: "input", message: input_error});
       } else {
         setIsSubmitted(true);
-        document.cookie='email='+email;
+        document.cookie='sessionid='+data.sessionid;
         // report to db using api
         window.location.replace('/profile/edit');
       }
     }
-    fetchData().then(check_info);
+      fetchData().then(add_cookie);
   };
 
 

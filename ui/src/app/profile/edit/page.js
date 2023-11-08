@@ -21,17 +21,23 @@ function EditProfile() {
   });
 
   let data;
+  const sessionid = getCookie('sessionid');
+  if (sessionid === null) {
+    return (
+      <html>
+      <body>
+      <p>Hey! You are not logged in. You will be redirected to the login page.</p>
+      {window.location.replace('/login')}
+      </body>
+      </html>
+    )
+  }
 
   // Generate JSX code for error message
   const renderErrorMessage = (name) =>
     name === errorMessages.name && (
       <div className="error text-red-700">{errorMessages.message}</div>
     );
-
-  const errors = {
-    email: "Input email has already been used by an account. Please log in.",
-    password: "Password error"
-  };
 
   function getCookie(name) {
     function escape(s) {
@@ -53,24 +59,54 @@ function EditProfile() {
     const new_interests = document.forms[0][8]._valueTracker.getValue();
     const current_pw = document.forms[0][9]._valueTracker.getValue();
     const new_pw = document.forms[0][10]._valueTracker.getValue();
-    fname=new_fname===''?fname:new_fname;
-    lname=new_lname===''?lname:new_lname;
-    new_email=new_email===''?email:new_email;
-    hobbies=new_hobbies===''?hobbies:new_hobbies;
-    interests=new_interests===''?interests:new_interests;
+    fname = new_fname === '' ? fname : new_fname;
+    lname = new_lname === '' ? lname : new_lname;
+    new_email = new_email === '' ? email : new_email;
+    hobbies = new_hobbies === '' ? hobbies : new_hobbies;
+    interests = new_interests === '' ? interests : new_interests;
 
     set_profile_info({student_id, uni_id, email, graduation_year, major, hobbies, interests, fname, lname});
 
     // update user profile
     const postProfileData = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:3000/editStudentProfile/' + email + '?hobbies=' + hobbies + '&interests=' + interests + '&fname=' + fname + '&lname=' + lname + '&new_email=' + new_email);
+        const response = await fetch(
+          'http://127.0.0.1:8060/editStudentProfile/?sessionid=' + sessionid + '&hobbies=' +
+          encodeURIComponent(hobbies) + '&interests=' + encodeURIComponent(interests) + '&fname=' +
+          encodeURIComponent(fname) + '&lname=' + encodeURIComponent(lname) + '&new_email=' +
+          encodeURIComponent(new_email), {method: "POST"}
+        );
         data = await response.json();
       } catch (error) {
         setErrorMessages({name: "server", message: "Server Error: " + error})
       }
     }
-    postProfileData().then(()=>window.location.replace('/profile'));
+    const changePassword = async () => {
+      try {
+        const response = await fetch(
+          'http://127.0.0.1:8060/changePassword/?sessionid=' + sessionid + '&current_pw=' +
+          encodeURIComponent(current_pw) + '&new_pw=' + encodeURIComponent(new_pw), {method: "POST"}
+        );
+        data = await response.json();
+      } catch (error) {
+        setErrorMessages({name: "server", message: "Server Error: " + error})
+      }
+      if (!data.result) {
+        setErrorMessages({name: "password", message: "Incorrect password."})
+      }
+    }
+
+    postProfileData().then(() => {
+      if (current_pw && new_pw) {
+        if (current_pw === new_pw) {
+          setErrorMessages({name: "password", message: "Current password and new password is the same."})
+          return;
+        }
+        changePassword().then(() => {if(data.result) {window.location.replace('/profile')}})
+      } else {
+        window.location.replace('/profile')
+      }
+    });
 
   };
 
@@ -82,10 +118,15 @@ function EditProfile() {
 
 
   const fetchData = async () => {
-    if(received_reply){return;}
+    if (received_reply) {
+      return;
+    }
     try {
-      const cookie_email = getCookie('email');
-      const response = await fetch('http://127.0.0.1:3000/getStudentProfileData/' + cookie_email);
+      const sessionid = getCookie('sessionid');
+      if (sessionid === null) {
+        window.location.replace('/login');
+      }
+      const response = await fetch('http://127.0.0.1:8060/getStudentProfileData/' + sessionid);
       data = await response.json();
     } catch (error) {
       setErrorMessages({name: "server", message: "Server Error: " + error})
@@ -93,7 +134,9 @@ function EditProfile() {
   }
 
   fetchData().then(() => {
-    if (received_reply) {return;}
+    if (received_reply) {
+      return;
+    }
     if (data.length === 0) {
       data.push(['', '', getCookie('email'), '', '', '', '', '', '']);
     }
@@ -101,15 +144,6 @@ function EditProfile() {
     set_profile_info({student_id, uni_id, email, graduation_year, major, hobbies, interests, fname, lname});
     set_received_reply(true);
   })
-
-
-  function set_profile_attr(attr_name, data) {
-    set_profile_info(
-      prevState => {
-        prevState[attr_name] = data;
-        return prevState;
-      });
-  }
 
 
   // load when api reply received and variables populated
@@ -168,7 +202,7 @@ function EditProfile() {
                 <div className="form-group">
                   <label className="col-sm-2 control-label">Email</label>
                   <div className="col-sm-10">
-                    <input type="email" className="form-control" placeholder={profile_info.email} disabled={false} />
+                    <input type="email" className="form-control" placeholder={profile_info.email} disabled={false}/>
                   </div>
                 </div>
               </div>
@@ -217,6 +251,9 @@ function EditProfile() {
                     <button type="reset" className="btn btn-default">Cancel</button>
                   </div>
                 </div>
+                {renderErrorMessage("server")}
+                {renderErrorMessage("password")}
+
               </div>
             </div>
           </form>

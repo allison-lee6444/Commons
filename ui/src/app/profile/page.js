@@ -22,6 +22,18 @@ function Profile() {
 
   let data;
 
+  const sessionid = getCookie('sessionid');
+  if (sessionid === null) {
+    return (
+      <html>
+      <body>
+      <p>Hey! You are not logged in. You will be redirected to the login page.</p>
+      {window.location.replace('/login')}
+      </body>
+      </html>
+    )
+  }
+
   function getCookie(name) {
     function escape(s) {
       return s.replace(/([.*+?\^$(){}|\[\]\/\\])/g, '\\$1');
@@ -31,11 +43,13 @@ function Profile() {
     return match ? match[1] : null;
   }
 
-    const fetchData = async () => {
-    if(received_reply){return;}
+  const fetchData = async () => {
+    if (received_reply) {
+      return;
+    }
     try {
-      const email = getCookie('email');
-      const response = await fetch('http://127.0.0.1:3000/getStudentProfileData/' + email);
+
+      const response = await fetch('http://127.0.0.1:8060/getStudentProfileData/' + sessionid);
       data = await response.json();
     } catch (error) {
       setErrorMessages({name: "server", message: "Server Error: " + error})
@@ -43,9 +57,11 @@ function Profile() {
   }
 
   fetchData().then(() => {
-    if(received_reply){return;}
-    if (data.length===0) {
-      data.push(['','',getCookie('email'),'','','','','','']);
+    if (received_reply) {
+      return;
+    }
+    if (data.length === 0) {
+      data.push(['', '', getCookie('email'), '', '', '', '', '', '']);
     }
     const [student_id, uni_id, email, graduation_year, major, hobbies, interests, fname, lname] = data[0];
     set_profile_info({student_id, uni_id, email, graduation_year, major, hobbies, interests, fname, lname});
@@ -75,7 +91,7 @@ function Profile() {
                     <img src="/default_avatar.png" alt="User avatar" className="rounded-circle center"
                          width="150"/>
                     <div className="mt-3">
-                      <h4>{profile_info.fname+' '+profile_info.lname}</h4>
+                      <h4>{profile_info.fname + ' ' + profile_info.lname}</h4>
                     </div>
                   </div>
                 </div>
@@ -90,7 +106,7 @@ function Profile() {
                       <h6 className="mb-0">Full Name</h6>
                     </div>
                     <div className="col-sm-9 text-secondary">
-                      {profile_info.fname+' '+profile_info.lname}
+                      {profile_info.fname + ' ' + profile_info.lname}
                     </div>
                   </div>
                   <hr/>
@@ -111,7 +127,7 @@ function Profile() {
                       {profile_info.student_id}
                     </div>
                   </div>
-                  <hr />
+                  <hr/>
                   <div className="row">
                     <div className="col-sm-3">
                       <h6 className="mb-0">School</h6>

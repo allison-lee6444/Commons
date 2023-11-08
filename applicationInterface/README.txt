@@ -1,17 +1,16 @@
-WARNING: The current code is not set up yet to interact with the database as the database is not yet complete.  See the commented out code.  It is currently functioning only with the test database.  It has not been tested with the student database.
+# How to install FastAPI:
 
-First, run the file authenticationService.py which is located in the same directory as this file.  To interact with the server, use the following paths and pass the following parameters.
+Run pip install fastapi uvicorn.
 
-Sample API calls were made with fetch API on the front-end during testing.
+# Instructions
 
-API Methods:
-  - authenticateUserSignIn
-    - Use: Authenticate user sign in attempts.
-    - Path: [SERVER]/authenticateUserSignIn/[USERNAME_DATA]?password=[PASSWORD_DATA]
-    - Parameters: Username, Password
+First, run the file server.py which is located in the same directory as this file.  
+To interact with the server, use the following paths and pass the following parameters.
 
-  - registerNewUser
-    - Use: Register new users.
-    - Path: [SERVER]/registerNewUser/[USERNAME_DATA]?password=[PASSWORD_DATA]
-    - Parameters: Username, Password
+# How to run server.py:
+
+1. CD into "applicationInterface" which is under the main directory.
+2. Run the "uvicorn server:app --reload" command.
+3. The server will be running on port 8000.
+
 
