@@ -5,6 +5,7 @@ from authentication import *
 from chatroom import *
 from events import *
 from profiles import *
+from flashcard import *
 
 app = FastAPI()
 
@@ -83,6 +84,14 @@ def getUserCourses(self,studentID):
 @app.get("/identifyTimeConflict")
 def identifyTimeConflict(self,startTime,endTime,studentID):
     return {"timeConflictExists":identifiedTimeConflict(startTime,endTime,studentID)}
+
+@app.get("/createFlashcard")
+def createFlashcardForChatroom(self, chatroom_id, front_text, back_text):
+    return {"success":createFlashcard(chatroom_id, front_text, back_text)}
+
+@app.get("/deleteFlashcard")
+def deleteFlashcardFromChatroom(self, chatroom_id, front_text, back_text):
+    return {"success":createFlashcard(chatroom_id, front_text, back_text)}
 
 # <<< [TEST - DELETE AFTER TEST] >>> #
 """@app.get("/test")
