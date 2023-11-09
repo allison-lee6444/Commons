@@ -9,8 +9,10 @@ To interact with the server, use the following paths and pass the following para
 
 # How to run server.py:
 
-1. CD into "applicationInterface" which is under the main directory.
-2. Run the "uvicorn server:app --reload" command.
-3. The server will be running on port 8000.
+1. Run pip install requests.
+2. CD into "applicationInterface" which is under the main directory.
+3. Run the "uvicorn server:app --reload" command.
+4. The server will be running on port 8000.
+
 
 
