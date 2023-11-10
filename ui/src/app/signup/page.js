@@ -25,7 +25,7 @@ export default function Signup() {
 
     const fetchData = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:8060/registerNewUser/?email=' + encodeURIComponent(email) + '&password=' + encodeURIComponent(password), {method:"POST"});
+        const response = await fetch('http://127.0.0.1:8060/register/?email=' + encodeURIComponent(email) + '&password=' + encodeURIComponent(password), {method:"POST"});
         data = await response.json();
       } catch (error) {
         setErrorMessages({name: "server", message: "Server Error: " + error})

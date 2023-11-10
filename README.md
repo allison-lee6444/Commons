@@ -3,11 +3,7 @@ CS4523 Design Project
 
 You need to run the following to get the dependency working:
 
-    pip install psycopg2-binary
-    pip install TurboGears2
-    pip install pytest
-Note: In the future, we could move to a wheel to handle the dependency if we 
-eventually have too many dependecies to manage.
+    pip install -r requirements.txt
 
 For running unit tests, you can run:
     
@@ -16,6 +12,11 @@ For running unit tests, you can run:
 For running the server, you can run:
     
     make run-server
+
+Alternatively,
+   
+    cd server
+    uvicorn main:app --host 127.0.0.1 --port 8060
 
 For UI, assuming a Linux environment:
 
