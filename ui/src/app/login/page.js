@@ -29,7 +29,7 @@ export default function Login() {
     // Find user login info
     const fetchData = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:8060/authenticateUserSignIn/?email=' + encodeURIComponent(email) + '&password=' + encodeURIComponent(password));
+        const response = await fetch('http://127.0.0.1:8060/login/?email=' + encodeURIComponent(email) + '&password=' + encodeURIComponent(password));
         data = await response.json();
       } catch (error) {
         setErrorMessages({name: "server", message: "Server Error: "+error})
