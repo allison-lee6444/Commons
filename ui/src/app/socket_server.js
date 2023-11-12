@@ -12,8 +12,41 @@ const socketIO = require('socket.io')(http, {
 app.use(cors())
 let users = []
 
+function get(item) {
+		const request = new Promise((resolve, reject) => {
+			let data = localStorage.getItem(item);
+      console.log(`Start of promise`);
+			(data) ? resolve(data) : reject();
+		});
+
+		request.then((data) => {
+      console.log(`promise resolved`);
+			console.log(JSON.parse(data));
+		});
+
+		request.catch((error) => {
+      console.log(`Promise rejected`);
+			console.log(error);
+		});
+	}
+
+
 socketIO.on('connection', (socket) => {
-    console.log(`⚡: ${socket.id} user just connected!`)  
+    console.log(`⚡: ${socket.id} user just connected!`);
+
+    const user_name = ""
+
+    if (typeof window !== 'undefined') {
+      user_name = get("userName");
+      console.log(user_name)
+      return user_name
+    }
+
+    if(!users.includes(user_name)){
+      socketIO.emit("newUser", user_name);
+      console.log("nw user", users)
+    }
+
     socket.on("message", data => {
       socketIO.emit("messageResponse", data)
     })
@@ -23,6 +56,7 @@ socketIO.on('connection', (socket) => {
     ))
 
     socket.on("newUser", data => {
+      console.log("push data")
       users.push(data)
       socketIO.emit("newUserResponse", users)
     })
