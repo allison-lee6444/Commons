@@ -16,7 +16,7 @@ function chatRoom() {
             <Route path="/" element={<Home socket={socket}/>}></Route>
             <Route path="/chat" element={<ChatPage socket={socket}/>}></Route>
           </Routes>
-    </div>
+        </div>
     </BrowserRouter>
     
   );
