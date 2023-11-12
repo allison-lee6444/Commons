@@ -1,2 +1,9 @@
+<<<<<<< HEAD
 .idea/
 .pytest_cache/
+=======
+node_modules/
+static/
+cache/
+.next/
+>>>>>>> 54649260038253dc8694b2fefc12527dda911821
