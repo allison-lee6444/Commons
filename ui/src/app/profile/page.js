@@ -20,7 +20,7 @@ function Profile() {
     lname: ''
   });
 
-  let data, email_fetched;
+  let data;
 
   const sessionid = getCookie('sessionid');
   if (sessionid === null) {
@@ -49,10 +49,8 @@ function Profile() {
     }
     try {
 
-      const response = await fetch('http://127.0.0.1:8060/getProfile/?sessionid=' + sessionid);
+      const response = await fetch('http://127.0.0.1:8060/getStudentProfileData/' + sessionid);
       data = await response.json();
-      const email_response = await fetch('http://127.0.0.1:8060/getEmail/?sessionid=' + sessionid);
-      email_fetched = await email_response.json();
     } catch (error) {
       setErrorMessages({name: "server", message: "Server Error: " + error})
     }
@@ -62,10 +60,10 @@ function Profile() {
     if (received_reply) {
       return;
     }
-    if (data.result.length === 0) {
-      data.result.push(['', '', email_fetched.result, '', '', '', '', '', '']);
+    if (data.length === 0) {
+      data.push(['', '', getCookie('email'), '', '', '', '', '', '']);
     }
-    const [student_id, uni_id, email, graduation_year, major, hobbies, interests, fname, lname] = data.result[0];
+    const [student_id, uni_id, email, graduation_year, major, hobbies, interests, fname, lname] = data[0];
     set_profile_info({student_id, uni_id, email, graduation_year, major, hobbies, interests, fname, lname});
     set_received_reply(true);
   })

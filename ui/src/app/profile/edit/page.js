@@ -20,7 +20,7 @@ function EditProfile() {
     lname: ''
   });
 
-  let data, email_fetched;
+  let data;
   const sessionid = getCookie('sessionid');
   if (sessionid === null) {
     return (
@@ -71,10 +71,10 @@ function EditProfile() {
     const postProfileData = async () => {
       try {
         const response = await fetch(
-          'http://127.0.0.1:8060/editProfile/?sessionid=' + sessionid + '&hobbies=' +
+          'http://127.0.0.1:8060/editStudentProfile/?sessionid=' + sessionid + '&hobbies=' +
           encodeURIComponent(hobbies) + '&interests=' + encodeURIComponent(interests) + '&fname=' +
           encodeURIComponent(fname) + '&lname=' + encodeURIComponent(lname) + '&new_email=' +
-          encodeURIComponent(new_email), {method: "PUT"}
+          encodeURIComponent(new_email), {method: "POST"}
         );
         data = await response.json();
       } catch (error) {
@@ -85,7 +85,7 @@ function EditProfile() {
       try {
         const response = await fetch(
           'http://127.0.0.1:8060/changePassword/?sessionid=' + sessionid + '&current_pw=' +
-          encodeURIComponent(current_pw) + '&new_pw=' + encodeURIComponent(new_pw), {method: "PUT"}
+          encodeURIComponent(current_pw) + '&new_pw=' + encodeURIComponent(new_pw), {method: "POST"}
         );
         data = await response.json();
       } catch (error) {
@@ -102,11 +102,7 @@ function EditProfile() {
           setErrorMessages({name: "password", message: "Current password and new password is the same."})
           return;
         }
-        changePassword().then(() => {
-          if (data.result) {
-            window.location.replace('/profile')
-          }
-        })
+        changePassword().then(() => {if(data.result) {window.location.replace('/profile')}})
       } else {
         window.location.replace('/profile')
       }
@@ -130,11 +126,8 @@ function EditProfile() {
       if (sessionid === null) {
         window.location.replace('/login');
       }
-      const response = await fetch('http://127.0.0.1:8060/getProfile/?sessionid=' + sessionid);
+      const response = await fetch('http://127.0.0.1:8060/getStudentProfileData/' + sessionid);
       data = await response.json();
-
-      const email_response = await fetch('http://127.0.0.1:8060/getEmail/?sessionid=' + sessionid);
-      email_fetched = await email_response.json();
     } catch (error) {
       setErrorMessages({name: "server", message: "Server Error: " + error})
     }
@@ -144,10 +137,10 @@ function EditProfile() {
     if (received_reply) {
       return;
     }
-    if (data.result.length === 0) {
-      data.result.push(['', '', email_fetched.result, '', '', '', '', '', '']);
+    if (data.length === 0) {
+      data.push(['', '', getCookie('email'), '', '', '', '', '', '']);
     }
-    const [student_id, uni_id, email, graduation_year, major, hobbies, interests, fname, lname] = data.result[0];
+    const [student_id, uni_id, email, graduation_year, major, hobbies, interests, fname, lname] = data[0];
     set_profile_info({student_id, uni_id, email, graduation_year, major, hobbies, interests, fname, lname});
     set_received_reply(true);
   })
