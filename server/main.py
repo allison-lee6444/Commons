@@ -7,6 +7,9 @@ import authentication
 import chatroom
 import events
 import profiles
+import import_schedules
+import verify_identity
+import flashcard
 
 app = FastAPI()
 
@@ -150,6 +153,29 @@ def getCourses(studentID):
 def hasConflict(startTime, endTime, studentID):
     return {"result": events.has_conflict(startTime, endTime, studentID)}
 
+@app.put("/saveMessage")
+def saveMessage(sender_id, chatroomID, message_sent):
+    return {"result" : chatroom.saveMessage(sender_id, chatroomID, message_sent)}
+
+@app.get("/retrieveMessages")
+def retrieveMessages(chatroom_id):
+    return {"result" : chatroom.retrieveMessages(chatroom_id)}
+
+@app.post("/ImportStudentSchedule")
+def importSchedule(values):
+    return {"result" : import_schedules.ImportStudentSchedule(values)}
+
+@app.post("/verifyIdentity")
+def verifyIdentity(student_id, uni_id, email, fname, lname, graduation_year):
+    return {"result" : verify_identity.verifyIdentity(student_id, uni_id, email, fname, lname, graduation_year)}
+
+@app.post("/createFlashcard")
+def createFlashcard(chatroom_id, front_text, back_text):
+    return {"result" : flashcard.createFlashcard(chatroom_id, front_text, back_text)}
+
+@app.delete("/deleteFlashcard")
+def deleteFlashcard(chatroom_id, front_text, back_text):
+    return {"result" : flashcard.deleteFlashcard(chatroom_id, front_text, back_text)}
 
 # <<< [TEST - DELETE AFTER TEST] >>> #
 """@app.get("/test")
