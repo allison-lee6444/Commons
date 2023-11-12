@@ -28,7 +28,9 @@ def retrieveMessages(chatroom_id):
 
 #Save message functionality
 def saveMessage(sender_id, chatroomID, message_sent):
-    date_time_sent = datetime.now()
-    cur.execute("INSERT INTO message(sender_id, chatroom_id, message_text, date_time_sent) VALUES(%(sender_id)s, %(chatroomID)s, %(message_sent)s, %(date_time_sent)s)", {"sender_id" : sender_id, "chatroomID" : chatroomID, "message_sent" : message_sent, "date_time_sent" : date_time_sent})
-    result = json.dumps(cur.fetchall())
-    return result
+    try:
+        date_time_sent = datetime.now()
+        cur.execute("INSERT INTO message(sender_id, chatroom_id, message_text, date_time_sent) VALUES(%(sender_id)s, %(chatroomID)s, %(message_sent)s, %(date_time_sent)s)", {"sender_id" : sender_id, "chatroomID" : chatroomID, "message_sent" : message_sent, "date_time_sent" : date_time_sent})
+        return True
+    except:
+        return False
