@@ -15,7 +15,7 @@ app.add_middleware(
 # Create database connection.
 conn = psycopg2.connect(
     host="localhost",
-    database="commons",
+    database="uni_server",
     user="commons_dev",
     password="commons_dev"
 )
@@ -28,36 +28,57 @@ password="commons_dev"
 # Create cursor to interact with the database.
 cur = conn.cursor()
 
-# Method to check if an email and studentID are in the student table.
-def verifyStudentStatus(email,studentID):
+# Method to check if an email are in the student table.
+def verifyStudentEmail(email):
     try:
-        cur.execute(f"SELECT * FROM student WHERE email='{email}' and student_id={studentID}")
+        cur.execute("SELECT * FROM student WHERE email=%(email)s",{'email':email})
         result = cur.fetchall()
         if len(result) != 0:
             return True
         else:
             return False
-    except: 
+    except Exception as e:
+        print(e) 
         return False
 
 # Method to get a student's schedule.
-def retrieveSchedule(studentID):
+def retrieveSchedule(email):
     try:
-        cur.execute(f"SELECT * FROM takes WHERE student_id={studentID}")
+        cur.execute(
+            "SELECT takes.student_id,takes.course_id,takes.section_id,takes.uni_id FROM takes LEFT JOIN student"
+            " ON takes.student_id = student.student_id WHERE student.email=%(email)s",{'email':email}
+        )
         result = cur.fetchall()
         return {"takes":result}
-    except:
+    except Exception as e:
+        print(e)
+        return {"error":True}
+
+# Method to get a student's profile data.
+# school, school id, grad year, major
+def retrieveProfile(email):
+    try:
+        cur.execute("SELECT student_id,uni_id,major,graduation_year FROM student WHERE email=%(email)s",{'email':email})
+        result = cur.fetchall()
+        return {"profile":result}
+    except Exception as e:
+        print(e)
         return {"error":True}
 
 # Method to handle user identity verification requests.
-@app.get("/verifyStudent")
-def verifyStudent(email,studentID):
-    return {"isAStudent":verifyStudentStatus(email,studentID)}
+@app.get("/verifyStudentEmail")
+def verifyStudentEmail(email):
+    return {"emailExists":verifyStudentEmail(email)}
 
 # Method to handle requests for a student's schedule.
 @app.get("/getStudentSchedule")
-def getStudentSchedule(studentID):
-    return retrieveSchedule(studentID)
+def getStudentSchedule(email):
+    return retrieveSchedule(email)
+
+# Method to handle requests for a student's profile.
+@app.get("/getStudentProfile")
+def getStudentProfile(email):
+    return retrieveProfile(email)
 
 # <<< [TEST - DELETE AFTER TEST] >>> #
 # Fake Server Communication Test

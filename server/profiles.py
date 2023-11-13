@@ -1,5 +1,24 @@
 from fastapi import HTTPException
 
+def request_profile(email):
+    url = f"http://localhost:8008/getStudentProfile?email={email}"
+    response = requests.get(url)
+    if response.status_code == 200:
+        data = response.json()
+        profileData = data["profile"][0]
+        profilesDict = {
+            'student_id':profileData[0],
+            'uni_id':profileData[1],
+            'major':profileData[2],
+            'graduation_year':profileData[3],
+            'email':email
+        }
+        cur.execute("UPDATE student SET student_id=%(student_id)s, uni_id=%(uni_id)s, major=%(major)s, graduation_year=%(graduation_year)s WHERE email=%(email)s",profilesDict)
+        cur.execute("COMMIT")
+        
+        return True
+    else:
+        return False
 
 def edit_profile(cur, email, hobbies, interests, fname, lname, new_email):
     try:
@@ -21,6 +40,7 @@ def edit_profile(cur, email, hobbies, interests, fname, lname, new_email):
             status_code=500,
             detail="Database Error",
         )
+    cur.execute("COMMIT") # delete 
     return True
 
 

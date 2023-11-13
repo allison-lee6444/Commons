@@ -78,7 +78,6 @@ def cancel_event(cur, host_id, event_id):
             # If there are students going to the event, delete it from the table.
             if len(resultGTE) != 0:
                 cur.execute("DELETE FROM going_to_event WHERE event_id = %(eventID)s", {'eventID': event_id})
-
             return True
         return False
     except BaseException as e:
@@ -87,7 +86,6 @@ def cancel_event(cur, host_id, event_id):
             status_code=500,
             detail="Database Error",
         )
-
 
 # Get a list of all events a user is participating in.
 def get_events(cur, student_id, uni_id):
@@ -167,6 +165,14 @@ def get_courses_meeting_on_same_day(cur, student_id, event_time):
     # semester.
     # <<< [TEST - UNCOMMENT AFTER TEST] >>>
     try:
+        """cur.execute(
+            f"SELECT section.start_time,section.end_time"
+            f" FROM takes LEFT JOIN section ON takes.uni_id = section.uni_id"
+            f" AND takes.course_id = section.course_id AND takes.section_id = section.section_id WHERE "
+            f"takes.student_id = {student_id} AND section.{day_to_col[day_of_week]} = 'True' AND section.semStartDate < "
+            f"'{date}' AND section.semEndDate > '{date}'"
+        )""" 
+        week_meet_day = 'meets'+event_time.strftime('%A')[:3]
         cur.execute(
             "SELECT section.start_time,section.end_time FROM takes LEFT JOIN section ON takes.uni_id = section.uni_id AND "
             "takes.course_id = section.course_id AND takes.section_id = section.section_id"
