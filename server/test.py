@@ -1,22 +1,26 @@
-import psycopg2
+import json
+from cursor import cur
+from chatroom import *
+from events import *
+from identity import *
+from schedule import *
 
-conn = psycopg2.connect(
-    host="localhost",
-    database="commons",
-    #user="postgres",
-    #password="root"
-    user="commons_dev",
-    password="commons_dev"
-)
+# Need to add default serial function to chatroom and remove eventID from createEvent.
 
-cur = conn.cursor()
+# Chatroom
 
-def createProfile(student_id, uni_id, name, graduation_year, major, hobbies, interests):
-    cur.execute(f"INSERT INTO student_profile VALUES(%s, %s, %s, %s, %s, %s, %s)", (student_id, uni_id, name, graduation_year, major, hobbies, interests))
+print("=== START: Test 1 ===")
+print(checkForMessages(1,'2023-11-13 08:00:00'))
+print("=== END: Test 1 ===")
 
-uni_id = 'NYU'
-cur.execute(f"INSERT INTO university VALUES(%s)", [uni_id])
-cur.execute(f"SELECT * FROM university")
-print(cur.fetchall())
+# Events
+
+print("=== START: Test 1 ===")
+print(createEvent("TEST123",123456,"Teting the function.","Test City","POINT(1,2)","10:00:00","12:00:00",))
+print("=== END: Test 1 ===")
+
+# Identity
+
+# Schedule
 
    
