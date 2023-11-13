@@ -3,6 +3,7 @@
 import React, {useEffect, useState} from 'react';
 import './EditProfile.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import { Dawning_of_a_New_Day } from 'next/font/google';
 
 function EditProfile() {
   const [errorMessages, setErrorMessages] = useState({});
@@ -57,8 +58,8 @@ function EditProfile() {
     let new_email = document.forms[0][6]._valueTracker.getValue();
     const new_hobbies = document.forms[0][7]._valueTracker.getValue();
     const new_interests = document.forms[0][8]._valueTracker.getValue();
-    const current_pw = document.forms[0][9]._valueTracker.getValue();
-    const new_pw = document.forms[0][10]._valueTracker.getValue();
+    const current_pw = document.forms[0][10]._valueTracker.getValue();
+    const new_pw = document.forms[0][11]._valueTracker.getValue();
     fname = new_fname === '' ? fname : new_fname;
     lname = new_lname === '' ? lname : new_lname;
     new_email = new_email === '' ? email : new_email;
@@ -120,6 +121,26 @@ function EditProfile() {
     window.location.replace('/profile');
   }
 
+  // My attempt.
+  const handleVerify = () => {
+    window.location.replace('/profile/verify');
+  }
+
+  const getVerificationStatus = async (email) => {
+    try {
+      const response = await fetch('http://127.0.0.1:8060/getVerificationStatus/?email=' + email);
+      data = await response.json();
+      if (data.verified) {
+        let status = document.getElementById("verification-status");
+        status.style.color = "green";
+        status.innerHTML = "Verified";
+        document.getElementById("reqCodeGroup").style.display = "None";
+      }
+    } catch (error) {
+      
+    }
+  }
+  // My attempt.
 
   const fetchData = async () => {
     if (received_reply) {
@@ -150,6 +171,8 @@ function EditProfile() {
     const [student_id, uni_id, email, graduation_year, major, hobbies, interests, fname, lname] = data.result[0];
     set_profile_info({student_id, uni_id, email, graduation_year, major, hobbies, interests, fname, lname});
     set_received_reply(true);
+    getVerificationStatus(email); // My attempt.
+    localStorage.setItem('emailAddr',email); // My attempt.
   })
 
 
@@ -235,6 +258,29 @@ function EditProfile() {
               </div>
             </div>
 
+            {/* My attempt. */}
+            <div className="panel panel-default">
+              <div className="panel-heading">
+                <h4 className="panel-title">Verify e-mail</h4>
+              </div>
+              <div className="panel-body">
+                <div className='form-group'>
+                  <label className="col-sm-2 control-label">Verification status</label>
+                  <div className='col-sm-10'>
+                    <p id="verification-status">Unverified</p>
+                  </div>
+                </div>
+                <div id='reqCodeGroup' className='form-group'>
+                  <label className="col-sm-2 control-label">Request verification code</label>
+                  <div className='col-sm-10'>
+                    <button type="button" className='btn btn-primary' onClick={handleVerify}>Request Code</button>
+                  </div>
+                </div>
+                {renderErrorMessage("server")}
+                {renderErrorMessage("password")}
+            </div>   
+            {/* My attempt. */}
+
             <div className="panel panel-default">
               <div className="panel-heading">
                 <h4 className="panel-title">Security</h4>
@@ -261,8 +307,9 @@ function EditProfile() {
                 {renderErrorMessage("server")}
                 {renderErrorMessage("password")}
 
-              </div>
-            </div>
+              </div>              
+            </div>            
+          </div>
           </form>
         </div>
       </div>

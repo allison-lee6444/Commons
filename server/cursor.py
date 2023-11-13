@@ -1,6 +1,5 @@
 import psycopg2
 import datetime
-
 # Create database connection.
 conn = psycopg2.connect(
     host="localhost",

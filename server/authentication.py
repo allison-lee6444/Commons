@@ -1,18 +1,20 @@
 import bcrypt
 from fastapi import HTTPException
-
 from cursor import cur
 
+# Authenticate sign-in attempt.
 def check_login(email, password):
     # Check if we find a username and password that matches.
     try:
         cur.execute("SELECT salt FROM student WHERE email=%(email)s", {'email': email})
         result = cur.fetchall()
+        print(result)
 
         if len(result) == 0:
             return False
 
-        salt = cur.fetchall()[0][0]
+        #salt = cur.fetchall()[0][0]
+        salt = result[0][0]
         hashed_password = bcrypt.hashpw(password.encode('utf8'), salt.encode('utf8')).decode('utf8')
         # cur.execute("SELECT * FROM test WHERE id=%s and number=%s",(username,hashed_password)) # Test
         cur.execute("SELECT * FROM student WHERE email=%(email)s and password=%(password)s",
@@ -23,6 +25,7 @@ def check_login(email, password):
         return False
 
     # Should only have 1 account
+    print(result)
     if len(result) == 1:
         return True
     return False
@@ -44,6 +47,7 @@ def register_account(email, password):
         cur.execute("INSERT INTO Student VALUES (%(email)s,%(hashed_password)s,%(salt)s)",
                     {'email': email, 'hashed_password': hashed_password, 'salt': salt})
         cur.execute("SELECT * FROM Student WHERE email=%(email)s", {'email': email})
+        cur.execute("COMMIT")
 
     except BaseException as e:
         print(f'Exception: {e}')

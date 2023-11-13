@@ -16,7 +16,7 @@ For running the server, you can run:
 Alternatively,
    
     cd server
-    uvicorn main:app --host 127.0.0.1 --port 8060
+    uvicorn main:app --host 127.0.0.1 --port 8060 --reload
 
 For UI, assuming a Linux environment:
 
