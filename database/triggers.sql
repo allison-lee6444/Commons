@@ -4,7 +4,7 @@ CREATE OR REPLACE FUNCTION auto_create_course_chatroom() RETURNS TRIGGER AS $$
     BEGIN
         --after insert into course --> insert those values into chatroom db
         IF (TG_OP = 'INSERT') THEN 
-            INSERT INTO chatroom(course_id, uni_id) VALUES(NEW.id, NEW.uni_id);
+            INSERT INTO chatroom(course_id, uni_id, chatroom_name) VALUES(NEW.id, NEW.uni_id, NEW.id);
         END IF;
         RETURN NULL; --this is an AFTER trigger
     END;

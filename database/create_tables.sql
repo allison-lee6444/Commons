@@ -78,11 +78,11 @@ CREATE TABLE IF NOT EXISTS takes (
 
 CREATE TABLE IF NOT EXISTS chatroom(
     id SERIAL, --bigint SERIAL, --AUTO_INCREMENT,
+    chatroom_name varchar(255) NOT NULL,
     uni_id varchar(255) NOT NULL,
     course_id varchar(255),
     primary key(id),
-    foreign key(course_id, uni_id) REFERENCES course(id, uni_id) ON DELETE CASCADE
-  
+    foreign key(uni_id) REFERENCES university(id) ON DELETE CASCADE  
 );
 
 CREATE TABLE IF NOT EXISTS flashcard(
@@ -159,7 +159,8 @@ CREATE TABLE IF NOT EXISTS going_to_event(
     student_id bigint NOT NULL,
     chatroom_id bigint NOT NULL,
     primary key(event_id, student_id, chatroom_id),
-    foreign key (student_id, chatroom_id) REFERENCES in_chatroom(student_id, chatroom_id) ON DELETE CASCADE
+    foreign key (student_id, chatroom_id) REFERENCES in_chatroom(student_id, chatroom_id) ON DELETE CASCADE,
+    foreign key (event_id) REFERENCES event(event_id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS student_profile(
