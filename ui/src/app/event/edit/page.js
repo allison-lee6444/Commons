@@ -8,21 +8,20 @@ import DateTimePicker from "react-datetime-picker";
 import 'react-datetime-picker/dist/DateTimePicker.css';
 import 'react-calendar/dist/Calendar.css';
 import 'react-clock/dist/Clock.css';
-import ReactLeafletSearch from "react-leaflet-search";
+import {
+  setDefaults,
+  fromAddress,
+} from "react-geocode";
 
 function EditEvent() {
+  const API_KEY = process.env.NEXT_PUBLIC_API_KEY;
   const [errorMessages, setErrorMessages] = useState({});
   const [received_reply, set_received_reply] = useState(false);
-  const [profile_info, set_profile_info] = useState({
-    student_id: '',
-    uni_id: '',
-    email: '',
-    graduation_year: '',
-    major: '',
-    hobbies: '',
-    interests: '',
-    fname: '',
-    lname: ''
+  const [[latitude, longitude], set_coords] = useState([40.694067025800905, -73.98662336197091]);
+  const [event_info, set_event_info] = useState({
+    name: '',
+    loc_name: '',
+    description: ''
   });
 
   let data, email_fetched, returned_values;
@@ -58,8 +57,9 @@ function EditEvent() {
 
   const handleSubmit = (event) => {
     // Prevent page reload
+
     event.preventDefault();
-    let {student_id, uni_id, email, graduation_year, major, hobbies, interests, fname, lname} = profile_info
+    let {student_id, uni_id, email, graduation_year, major, hobbies, interests, fname, lname} = event_info
     const new_fname = document.forms[0][0]._valueTracker.getValue();
     const new_lname = document.forms[0][1]._valueTracker.getValue();
     let new_email = document.forms[0][6]._valueTracker.getValue();
@@ -73,7 +73,7 @@ function EditEvent() {
     hobbies = new_hobbies === '' ? hobbies : new_hobbies;
     interests = new_interests === '' ? interests : new_interests;
 
-    set_profile_info({student_id, uni_id, email, graduation_year, major, hobbies, interests, fname, lname});
+    set_event_info({student_id, uni_id, email, graduation_year, major, hobbies, interests, fname, lname});
 
     // update user profile
     const postProfileData = async () => {
@@ -112,11 +112,11 @@ function EditEvent() {
         }
         changePassword().then(() => {
           if (data.result) {
-            window.location.replace('/profile')
+            window.location.replace('/event')
           }
         })
       } else {
-        window.location.replace('/profile')
+        window.location.replace('/event')
       }
     });
 
@@ -125,7 +125,7 @@ function EditEvent() {
   const handleReset = (event) => {
     // Prevent page reload
     event.preventDefault();
-    window.location.replace('/profile');
+    window.location.replace('/event');
   }
 
 
@@ -156,7 +156,7 @@ function EditEvent() {
       data.result.push(['', '', email_fetched.result, '', '', '', '', '', '']);
     }
     const [student_id, uni_id, email, graduation_year, major, hobbies, interests, fname, lname] = data.result[0];
-    set_profile_info({student_id, uni_id, email, graduation_year, major, hobbies, interests, fname, lname});
+    set_event_info({student_id, uni_id, email, graduation_year, major, hobbies, interests, fname, lname});
     set_received_reply(true);
   })
 
@@ -168,6 +168,29 @@ function EditEvent() {
   } = useForm({
     values: returned_values,
   });
+
+  setDefaults({
+    key: API_KEY, // Your API key here.
+    language: "en", // Default language for responses.
+    region: "us", // Default region for responses.
+  });
+
+  function onClickAddress() {
+    let address = document.forms[0][20]._valueTracker.getValue()
+
+    // comment to prevent api usage, costs $$$. just enable this when we demo or sth
+    // everything works here
+
+    // fromAddress(address)
+    //   .then(({results}) => {
+    //     const {lat, lng} = results[0].geometry.location;
+    //     set_coords([lat, lng]);
+    //     setErrorMessages({name: "map", message: ""})
+    //   })
+    //   .catch((error) => {
+    //     setErrorMessages({name: "map", message: "Try again! Map Error: " + error})
+    //   })
+  }
 
 
   // load when api reply received and variables populated
@@ -216,7 +239,24 @@ function EditEvent() {
                     />
                   </div>
                 </div>
-                <div>
+                <div className="form-group">
+                  <label htmlFor="location" className="col-sm-2 control-label">Location</label>
+                  <div className="col-sm-8">
+                    <input
+                      className="form-control"
+                      placeholder="Input address here"
+                    />
+                    <button className="btn btn-default" onClick={onClickAddress}>Enter</button>
+                    {renderErrorMessage("map")}
+                    <iframe
+                      width="600"
+                      height="450"
+                      loading="lazy"
+                      allowFullScreen
+                      referrerPolicy="no-referrer-when-downgrade"
+                      src={"https://www.google.com/maps/embed/v1/place?key="+API_KEY+"&q=" + latitude + "," + longitude}>
+                    </iframe>
+                  </div>
 
                 </div>
               </div>
