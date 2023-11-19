@@ -1,3 +1,5 @@
+import traceback
+
 import bcrypt
 from fastapi import HTTPException
 
@@ -7,11 +9,6 @@ def check_login(email, password):
     # Check if we find a username and password that matches.
     try:
         cur.execute("SELECT salt FROM student WHERE email=%(email)s", {'email': email})
-        result = cur.fetchall()
-
-        if len(result) == 0:
-            return False
-
         salt = cur.fetchall()[0][0]
         hashed_password = bcrypt.hashpw(password.encode('utf8'), salt.encode('utf8')).decode('utf8')
         # cur.execute("SELECT * FROM test WHERE id=%s and number=%s",(username,hashed_password)) # Test

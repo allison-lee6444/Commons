@@ -1,11 +1,16 @@
 /* credit: https://richreact.com/react-examples/Edit-profile-page#code-editor1 */
 "use client"
 import React, {useState} from 'react';
-import './EditProfile.css';
+import './eventedit.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import {useForm} from "react-hook-form"
+import DateTimePicker from "react-datetime-picker";
+import 'react-datetime-picker/dist/DateTimePicker.css';
+import 'react-calendar/dist/Calendar.css';
+import 'react-clock/dist/Clock.css';
+import ReactLeafletSearch from "react-leaflet-search";
 
-function EditProfile() {
+function EditEvent() {
   const [errorMessages, setErrorMessages] = useState({});
   const [received_reply, set_received_reply] = useState(false);
   const [profile_info, set_profile_info] = useState({
@@ -21,6 +26,8 @@ function EditProfile() {
   });
 
   let data, email_fetched, returned_values;
+  const [start_datetime, set_start] = useState(new Date());
+  const [end_datetime, set_end] = useState(new Date());
 
   const sessionid = getCookie('sessionid');
   if (sessionid === null) {
@@ -168,148 +175,81 @@ function EditProfile() {
     <div className="container bootstrap snippets bootdeys">
       <div className="row">
         <div className="col-xs-12 col-sm-9">
+          <hr/>
+          <hr/>
           <form className="form-horizontal" onSubmit={handleSubmit} onReset={handleReset}>
-            <div className="panel panel-default">
-              <div className="panel-body text-center">
-                <img src="/default_avatar.png" className="img-circle profile-avatar" alt="User avatar"/>
-              </div>
-            </div>
             {renderErrorMessage('server')}
             <div className="panel panel-default">
               <div className="panel-heading">
-                <h4 className="panel-title">User info</h4>
+                <h4 className="panel-title">Basic information</h4>
               </div>
               <div className="panel-body">
                 <div className="form-group">
-                  <label htmlFor="fname" className="col-sm-2 control-label">First Name</label>
+                  <label htmlFor="name" className="col-sm-2 control-label">Event Name</label>
                   <div className="col-sm-10">
                     <input
                       className="form-control"
-                      defaultValue={profile_info.fname}
-                      {...register("fname", {required: true})}
+                      defaultValue={'event_name'}
+                      {...register("event_name", {required: true})}
                     />
                   </div>
                 </div>
                 <div className="form-group">
-                  <label htmlFor="lname" className="col-sm-2 control-label">Last Name</label>
+                  <label htmlFor="start" className="col-sm-2 control-label">Start</label>
                   <div className="col-sm-10">
-                    <input
-                      className="form-control"
-                      defaultValue={profile_info.lname}
-                      {...register("lname", {required: true})}
-                    />
+                    <DateTimePicker onChange={set_start} value={start_datetime}/>
                   </div>
                 </div>
                 <div className="form-group">
-                  <label htmlFor="uni_id" className="col-sm-2 control-label">School</label>
+                  <label htmlFor="end" className="col-sm-2 control-label">End</label>
                   <div className="col-sm-10">
-                    <input
-                      className="form-control"
-                      defaultValue={profile_info.uni_id}
-                      {...register("uni_id", {disabled: true})}
-                    />
+                    <DateTimePicker onChange={set_end} value={end_datetime}/>
                   </div>
                 </div>
                 <div className="form-group">
-                  <label htmlFor="student_id" className="col-sm-2 control-label">Student ID</label>
+                  <label htmlFor="loc_name" className="col-sm-2 control-label">Location Name / Room</label>
                   <div className="col-sm-10">
                     <input
                       className="form-control"
-                      defaultValue={profile_info.student_id}
-                      {...register("student_id", {disabled: true})}
+                      defaultValue={'loc_name'}
+                      {...register("loc_name", {required: true})}
                     />
                   </div>
                 </div>
-                <div className="form-group">
-                  <label htmlFor="graduation_year" className="col-sm-2 control-label">Graduation Year</label>
-                  <div className="col-sm-10">
-                    <input
-                      className="form-control"
-                      defaultValue={profile_info.graduation_year}
-                      {...register("graduation_year", {disabled: true})}
-                    />
-                  </div>
-                </div>
-                <div className="form-group">
-                  <label htmlFor="major" className="col-sm-2 control-label">Major</label>
-                  <div className="col-sm-10">
-                    <input
-                      className="form-control"
-                      defaultValue={profile_info.major}
-                      {...register("major", {disabled: true})}
-                    />
-                  </div>
-                </div>
-                <div className="form-group">
-                  <label htmlFor="email" className="col-sm-2 control-label">Email</label>
-                  <div className="col-sm-10">
-                    <input
-                      type="email"
-                      className="form-control"
-                      defaultValue={profile_info.email}
-                      {...register("email", {required: true})}
-                    />
-                  </div>
+                <div>
+
                 </div>
               </div>
             </div>
 
             <div className="panel panel-default">
               <div className="panel-heading">
-                <h4 className="panel-title">More about myself</h4>
+                <h4 className="panel-title">Description</h4>
               </div>
               <div className="panel-body">
                 <div className="form-group">
-                  <label htmlFor="hobbies" className="col-sm-2 control-label">Hobbies</label>
+                  <label htmlFor="description" className="col-sm-2 control-label">Event description</label>
                   <div className="col-sm-10">
                     <textarea
                       className="form-control"
-                      defaultValue={profile_info.hobbies}
-                      {...register("hobbies")}
+                      defaultValue={"description"}
+                      {...register("description")}
                     />
                   </div>
                 </div>
-                <div className="form-group">
-                  <label htmlFor="interests" className="col-sm-2 control-label">Interests</label>
-                  <div className="col-sm-10">
-                    <textarea
-                      className="form-control"
-                      defaultValue={profile_info.interests}
-                      {...register("interests")}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="panel panel-default">
-              <div className="panel-heading">
-                <h4 className="panel-title">Security</h4>
-              </div>
-              <div className="panel-body">
-                <div className="form-group">
-                  <label className="col-sm-2 control-label">Current password</label>
-                  <div className="col-sm-10">
-                    <input type="password" className="form-control"/>
-                  </div>
-                </div>
-                <div className="form-group">
-                  <label className="col-sm-2 control-label">New password</label>
-                  <div className="col-sm-10">
-                    <input type="password" className="form-control"/>
-                  </div>
-                </div>
-                <div className="form-group">
-                  <div className="col-sm-10 col-sm-offset-2">
-                    <button type="submit" className="btn btn-primary">Submit</button>
-                    <button type="reset" className="btn btn-default">Cancel</button>
-                  </div>
-                </div>
-                {renderErrorMessage("server")}
-                {renderErrorMessage("password")}
 
               </div>
             </div>
+
+
+            <div className="form-group">
+              <div className="col-sm-10 col-sm-offset-5">
+                <button type="submit" className="btn btn-primary">Submit</button>
+                <button type="reset" className="btn btn-default">Cancel</button>
+              </div>
+            </div>
+            {renderErrorMessage("server")}
+            {renderErrorMessage("password")}
           </form>
         </div>
       </div>
@@ -317,4 +257,4 @@ function EditProfile() {
   ));
 }
 
-export default EditProfile;
+export default EditEvent;
