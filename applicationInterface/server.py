@@ -103,6 +103,10 @@ def importStudentSchedule(self, values):
 def verifyStudent(self, student_id, uni_id, email, fname, lname, graduation_year):
     return {"success":verifyIdentity(student_id, uni_id, email, fname, lname, graduation_year)}
 
+@app.post("/createChatroom")
+def createNonCourseChatroom(self, user_id, chatroom_name, uni_id):
+    return {"success" : createChatroom(user_id, chatroom_name, uni_id)}
+
 # <<< [TEST - DELETE AFTER TEST] >>> #
 """@app.get("/test")
 def test(self):

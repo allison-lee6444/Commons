@@ -73,7 +73,7 @@ CREATE TABLE IF NOT EXISTS takes (
     section_id varchar(255) NOT NULL,
     primary key(student_id, uni_id, course_id),
     foreign key(student_id, uni_id) REFERENCES attends(student_id, uni_id) ON DELETE CASCADE,
-    foreign key(course_id, uni_id, section_id) REFERENCES section(id, uni_id, section_id) ON DELETE CASCADE
+    foreign key(course_id, uni_id, section_id) REFERENCES section(course_id, uni_id, section_id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS chatroom(
@@ -135,7 +135,7 @@ CREATE TABLE IF NOT EXISTS player (
     foreign key(game_id) REFERENCES game(game_id) ON DELETE CASCADE
 );
 
-REATE TABLE IF NOT EXISTS event(
+CREATE TABLE IF NOT EXISTS event(
     event_name varchar(255) NOT NULL,
     host_id bigint NOT NULL,
     uni_id varchar(255) NOT NULL, 

@@ -34,3 +34,14 @@ def saveMessage(sender_id, chatroomID, message_sent):
         return True
     except:
         return False
+    
+#Create non-course chatroom
+def createChatroom(user_id, chatroom_name, uni_id):
+    try:
+        cur.execute("INSERT INTO chatroom(chatroom_name, uni_id) VALUES(%(chatroom_name)s, %(uni_id)s)", {"chatroom_name" : chatroom_name, "uni_id" : uni_id})
+        cur.execute("SELECT id FROM chatroom where chatroom_name = %(chatroom_name)s   AND uni_id = %(uni_id)s", {"chatroom_name" : chatroom_name, "uni_id" : uni_id})
+        chatroom_id = cur.fetchall()[0][0]
+        cur.execute("INSERT INTO in_chatroom(student_id, uni_id, chatroom_id) VALUES(%(user_id)s, %(uni_id)s, %(chatroom_id)s)", {"user_id" : user_id, "uni_id" : uni_id, "chatroom_id" : chatroom_id})
+        return True
+    except:
+        return False
