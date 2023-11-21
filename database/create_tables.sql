@@ -139,7 +139,7 @@ CREATE TABLE IF NOT EXISTS event(
     event_name varchar(255) NOT NULL,
     host_id bigint NOT NULL,
     uni_id varchar(255) NOT NULL, 
-    --`chatroom_id` bigint NOT NULL,
+    chatroom_id bigint NOT NULL,
     descript text,
     location_name varchar(255) NOT NULL,
     location_coordinates point NOT NULL,
@@ -148,7 +148,8 @@ CREATE TABLE IF NOT EXISTS event(
     end_time timestamp,
     event_id SERIAL, --bigint SERIAL NOT NULL, --AUTO_INCREMENT NOT NULL,
     primary key(event_id),
-    foreign key (host_id, uni_id) REFERENCES attends(student_id, uni_id)
+    foreign key (host_id, uni_id) REFERENCES attends(student_id, uni_id),
+    foreign key (chatroom_id) REFERENCES chatroom(id)
     --primary key(`event_name`, `chtaroom_id`, `timeslot`, `location`),
     --foreign key `chatroom_id` REFERENCES `chatroom`(`id`)
 );
