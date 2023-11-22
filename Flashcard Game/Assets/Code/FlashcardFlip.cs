@@ -58,7 +58,7 @@ public class FlashcardFlip : MonoBehaviour
             v.x += isShrinking * distancePerTime * Time.deltaTime;
             rect.localScale = v;
 
-            timeCount += Time.deltaTime; 
+            timeCount += Time.deltaTime;
             if ((timeCount >= flipTime) && (isShrinking < 0))
             {
                 isShrinking = 1; //make it grow back to og size
@@ -74,7 +74,8 @@ public class FlashcardFlip : MonoBehaviour
                     cardText.text = ques[cardNum].question;
                 }
             }
-            else if ((timeCount >= flipTime) && (isShrinking == 1)) {
+            else if ((timeCount >= flipTime) && (isShrinking == 1))
+            {
                 isFlipping = false;
             }
         }
@@ -97,3 +98,4 @@ public class FlashcardFlip : MonoBehaviour
         isShrinking = -1;
     }
 }
+
