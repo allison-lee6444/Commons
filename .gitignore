@@ -1,3 +1,4 @@
+
 node_modules/
 
 # This .gitignore file should be placed at the root of your Unity project directory
@@ -59,3 +60,12 @@ node_modules/
 
 # Crashlytics generated file
 */crashlytics-build.properties
+
+
+.idea/
+.pytest_cache/
+node_modules/
+static/
+cache/
+.next/
+
