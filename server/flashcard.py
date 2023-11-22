@@ -1,4 +1,6 @@
 from cursor import cur
+import json
+from fastapi import HTTPException
 
 def createFlashcard(chatroom_id, front_text, back_text):
     try:
@@ -13,4 +15,15 @@ def deleteFlashcard(chatroom_id, front_text, back_text):
         return True
     except:
         return False
+    
+def getFlashcards(chatroom_id):
+    try:
+        cur.execute("SELECT * FROM flashcard WHERE chatroom_id = %(chatroom_id)s", {'chatroom_id' : chatroom_id})
+        return(json.dumps(cur.fetchall()))
+    except BaseException as e:
+        print(f'Exception: {e}')
+        raise HTTPException(
+            status_code=500,
+            detail="Database Error",
+        )
     
