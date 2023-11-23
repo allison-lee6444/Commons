@@ -1,4 +1,4 @@
-// File: /mnt/c/Users/maria/Documents/GitHub/Commons/ui/src/app/profile/page.js
+// File: /mnt/c/Users/maria/Documents/GitHub/Commons_NEW/Commons/ui/src/app/profile/page.js
 import * as entry from '../../../../src/app/profile/page.js'
 import type { ResolvingMetadata } from 'next/dist/lib/metadata/types/metadata-interface.js'
 
