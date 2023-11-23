@@ -4,8 +4,10 @@ DROP TABLE IF EXISTS going_to_event;
 DROP TABLE IF EXISTS message;
 DROP TABLE IF EXISTS player;
 DROP TABLE IF EXISTS in_chatroom;
+DROP TABLE IF EXISTS flashcard;
 DROP TABLE IF EXISTS chatroom;
 DROP TABLE IF EXISTS takes;
+DROP TABLE IF EXISTS section;
 DROP TABLE IF EXISTS student_profile;
 DROP TABLE IF EXISTS attends;
 DROP TABLE IF EXISTS student;
@@ -44,29 +46,59 @@ CREATE TABLE IF NOT EXISTS course (
     foreign key(uni_id) REFERENCES university(id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS section (
+    course_id varchar(255) NOT NULL,
+    uni_id varchar(255) NOT NULL,
+    section_id varchar(255) NOT NULL,
+    start_time time,
+    end_time time,
+    semStartDate date,
+    semEndDate date,
+    year varchar(255),
+    meetsMon boolean,
+    meetsTue boolean,
+    meetsWed boolean,
+    meetsThu boolean,
+    meetsFri boolean,
+    meetsSat boolean,
+    meetsSun boolean,
+    primary key(course_id, uni_id, section_id),
+    foreign key (course_id, uni_id) REFERENCES course(id, uni_id) ON DELETE CASCADE
+);
+
 CREATE TABLE IF NOT EXISTS takes (
     student_id bigint NOT NULL,
     uni_id varchar(255) NOT NULL,
     course_id varchar(255) NOT NULL,
+    section_id varchar(255) NOT NULL,
     primary key(student_id, uni_id, course_id),
     foreign key(student_id, uni_id) REFERENCES attends(student_id, uni_id) ON DELETE CASCADE,
-    foreign key(course_id, uni_id) REFERENCES course(id, uni_id) ON DELETE CASCADE
+    foreign key(course_id, uni_id, section_id) REFERENCES section(course_id, uni_id, section_id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS chatroom(
     id SERIAL, --bigint SERIAL, --AUTO_INCREMENT,
+    chatroom_name varchar(255) NOT NULL,
     uni_id varchar(255) NOT NULL,
-    course_id varchar(255) NOT NULL,
+    course_id varchar(255),
     primary key(id),
-    foreign key(course_id, uni_id) REFERENCES course(id, uni_id) ON DELETE CASCADE
-  
+    foreign key(uni_id) REFERENCES university(id) ON DELETE CASCADE  
+);
+
+CREATE TABLE IF NOT EXISTS flashcard(
+    id SERIAL,
+    front text,
+    back text,
+    chatroom_id bigint NOT NULL,
+    primary key(id, chatroom_id),
+    foreign key(chatroom_id) REFERENCES chatroom(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS in_chatroom (
     --`email` varchar(255) NOT NULL,
     student_id bigint NOT NULL, --varchar(255) NOT NULL,
     uni_id varchar(255) NOT NULL,
-    course_id varchar(255) NOT NULL,
+    course_id varchar(255), --previously was NOT NULL
     chatroom_id bigint NOT NULL,
     primary key(student_id, chatroom_id),
     --primary key(`email`, `chatroom_id`),
@@ -105,23 +137,31 @@ CREATE TABLE IF NOT EXISTS player (
 
 CREATE TABLE IF NOT EXISTS event(
     event_name varchar(255) NOT NULL,
-    --`chatroom_id` bigint NOT NULL,
+    host_id bigint NOT NULL,
+    uni_id varchar(255) NOT NULL, 
+    chatroom_id bigint NOT NULL,
     descript text,
     location_name varchar(255) NOT NULL,
     location_coordinates point NOT NULL,
-    timeslot timestamp, --datetime,
+    --timeslot timestamp, --datetime,
+    start_time timestamp,
+    end_time timestamp,
     event_id SERIAL, --bigint SERIAL NOT NULL, --AUTO_INCREMENT NOT NULL,
-    primary key(event_id)
+    primary key(event_id),
+    foreign key (host_id, uni_id) REFERENCES attends(student_id, uni_id),
+    foreign key (chatroom_id) REFERENCES chatroom(id)
     --primary key(`event_name`, `chtaroom_id`, `timeslot`, `location`),
     --foreign key `chatroom_id` REFERENCES `chatroom`(`id`)
 );
+
 
 CREATE TABLE IF NOT EXISTS going_to_event(
     event_id bigint NOT NULL,
     student_id bigint NOT NULL,
     chatroom_id bigint NOT NULL,
     primary key(event_id, student_id, chatroom_id),
-    foreign key (student_id, chatroom_id) REFERENCES in_chatroom(student_id, chatroom_id) ON DELETE CASCADE
+    foreign key (student_id, chatroom_id) REFERENCES in_chatroom(student_id, chatroom_id) ON DELETE CASCADE,
+    foreign key (event_id) REFERENCES event(event_id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS student_profile(
