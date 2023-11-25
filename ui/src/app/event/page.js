@@ -3,75 +3,85 @@
 import React, {useState} from 'react';
 import './event.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import {getCookie} from "@/app/utils"
 
 function Event() {
   const API_KEY = process.env.NEXT_PUBLIC_API_KEY;
-  const [received_reply, set_received_reply] = useState(false);
   const [errorMessages, setErrorMessages] = useState({});
-  const [profile_info, set_profile_info] = useState({
-    student_id: '',
-    uni_id: '',
-    email: '',
-    graduation_year: '',
-    major: '',
-    hobbies: '',
-    interests: '',
+  const [received_reply, set_received_reply] = useState(false);
+  const [[latitude, longitude], set_coords] = useState([40.694067025800905, -73.98662336197091]);
+  const [event_info, set_event_info] = useState({
+    event_name: '',
+    loc_name: '',
+    description: '',
     fname: '',
-    lname: ''
+    lname: '',
+    email: ''
   });
 
-  let data, email_fetched;
+  let data, returned_values;
+  const [start_datetime, set_start] = useState(new Date());
+  const [end_datetime, set_end] = useState(new Date());
 
   const sessionid = getCookie('sessionid');
+  const chatroomid = 1; // debug
+  const eventid = 1 //debug
   if (sessionid === null) {
     return (
-      <html>
-      <body>
-      <p>Hey! You are not logged in. You will be redirected to the login page.</p>
-      {window.location.replace('/login')}
-      </body>
-      </html>
+      <div>
+        <p>Hey! You are not logged in. You will be redirected to the login page.</p>
+        {window.location.replace('/login')}
+      </div>
     )
   }
 
-  function getCookie(name) {
-    function escape(s) {
-      return s.replace(/([.*+?\^$(){}|\[\]\/\\])/g, '\\$1');
-    }
-
-    const match = document.cookie.match(RegExp('(?:^|;\\s*)' + escape(name) + '=([^;]*)'));
-    return match ? match[1] : null;
-  }
+  // Generate JSX code for error message
+  const renderErrorMessage = (name) =>
+    name === errorMessages.name && (
+      <div className="error text-red-700">{errorMessages.message}</div>
+    );
 
   const fetchData = async () => {
     if (received_reply) {
       return;
     }
     try {
+      const chatroom_id = 1; // change after chatroom pushed
+      if (sessionid === null) {
+        window.location.replace('/login');
+      }
+      if (chatroom_id === null) {
+        window.location.replace('/chat');
+      }
 
-      const response = await fetch('http://127.0.0.1:8060/getProfile/?sessionid=' + sessionid);
+      const response = await fetch('http://127.0.0.1:8060/getEvent/?sessionID=' + sessionid + '&eventID=' + eventid + '&chatroomID' + chatroom_id);
       data = await response.json();
-      const email_response = await fetch('http://127.0.0.1:8060/getEmail/?sessionid=' + sessionid);
-      email_fetched = await email_response.json();
     } catch (error) {
       setErrorMessages({name: "server", message: "Server Error: " + error})
     }
   }
 
-  fetchData().then(() => {
-    if (received_reply) {
-      return;
-    }
-    if (data.result.length === 0) {
-      data.result.push(['', '', email_fetched.result, '', '', '', '', '', '']);
-    }
-    const [student_id, uni_id, email, graduation_year, major, hobbies, interests, fname, lname] = data.result[0];
-    set_profile_info({student_id, uni_id, email, graduation_year, major, hobbies, interests, fname, lname});
-    set_received_reply(true);
-  })
+  // fetchData().then(() => {
+  //   if (received_reply) {
+  //     return;
+  //   }
+  //   if (data.result.length === 0) {
+  //     window.location.replace('/events');
+  //   }
+  //   const [event_name, fname, lname, email, descript, location_name, location_coordinates, start_time, end_time] = data.result[0];
+  //   set_event_info(
+  //     {event_name: event_name, loc_name: location_name, description: descript, fname: fname, lname: lname, email: email}
+  //   );
+  //   const [lat, lng]=location_coordinates.split(',')
+  //   set_coords([lat,lng]);
+  //   set_start(new Date(Date.parse(start_time)));
+  //   set_end(new Date(Date.parse(end_time)));
+  //   set_received_reply(true);
+  // })
 
   // load when api reply received and variables populated
-  return (received_reply && (
+  // return (received_reply && (
+  return ((
     <div>
       <div className="container">
         <div className="main-body">
@@ -80,6 +90,7 @@ function Event() {
           <nav aria-label="breadcrumb" className="main-breadcrumb">
             <ol className="breadcrumb">
               <li className="breadcrumb-item"><a href="/chatroom">Chatroom</a></li>
+              <li className="breadcrumb-item"><a href="/events">Events</a></li>
               <li className="breadcrumb-item active" aria-current="page">Event</li>
             </ol>
           </nav>
@@ -118,6 +129,24 @@ function Event() {
                   <hr/>
                   <div className="row">
                     <div className="col-sm-3">
+                      <h6 className="mb-0">Host Email</h6>
+                    </div>
+                    <div className="col-sm-9 text-secondary">
+                      {"email"}
+                    </div>
+                  </div>
+                  <hr/>
+                   <div className="row">
+                    <div className="col-sm-3">
+                      <h6 className="mb-0">Host Name</h6>
+                    </div>
+                    <div className="col-sm-9 text-secondary">
+                      {"name"}
+                    </div>
+                  </div>
+                  <hr/>
+                  <div className="row">
+                    <div className="col-sm-3">
                       <h6 className="mb-0">Location name / Room</h6>
                     </div>
                     <div className="col-sm-9 text-secondary">
@@ -136,39 +165,39 @@ function Event() {
                       loading="lazy"
                       allowFullScreen
                       referrerPolicy="no-referrer-when-downgrade"
-                      src={"https://www.google.com/maps/embed/v1/place?key="+API_KEY+"&q=40.694067025800905,-73.98662336197091"}>
+                      src={"https://www.google.com/maps/embed/v1/place?key=" + API_KEY + "&q=40.694067025800905,-73.98662336197091"}>
                     </iframe>
                   </div>
-                    <hr/>
+                  <hr/>
 
-                    <div className="row">
-                      <div className="col-sm-3">
-                        <h6 className="mb-0">Event Description</h6>
-                      </div>
-                      <div className="col-sm-9 text-secondary">
-                        {"description"}
-                      </div>
+                  <div className="row">
+                    <div className="col-sm-3">
+                      <h6 className="mb-0">Event Description</h6>
                     </div>
-                    <hr/>
-                  {profile_info.email==="admin@admin.com"?// test condition
+                    <div className="col-sm-9 text-secondary">
+                      {"description"}
+                    </div>
+                  </div>
+                  <hr/>
+                  {true ?// test condition
                     <div className="row">
                       <div className="col-sm-12">
                         <a className="btn btn-info "
                            href="/event/edit">Edit</a>
                       </div>
                     </div>
-                  : <br/>}
-                  </div>
+                    : <br/>}
                 </div>
-
-
               </div>
-            </div>
 
+
+            </div>
           </div>
+
         </div>
       </div>
-      ));
-      }
+    </div>
+  ));
+}
 
-      export default Event;
+export default Event;

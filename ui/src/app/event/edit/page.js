@@ -12,6 +12,7 @@ import {
   setDefaults,
   fromAddress,
 } from "react-geocode";
+import {getCookie} from "@/app/utils";
 
 function EditEvent() {
   const API_KEY = process.env.NEXT_PUBLIC_API_KEY;
@@ -19,24 +20,24 @@ function EditEvent() {
   const [received_reply, set_received_reply] = useState(false);
   const [[latitude, longitude], set_coords] = useState([40.694067025800905, -73.98662336197091]);
   const [event_info, set_event_info] = useState({
-    name: '',
+    event_name: '',
     loc_name: '',
     description: ''
   });
 
-  let data, email_fetched, returned_values;
+  let data, returned_values;
   const [start_datetime, set_start] = useState(new Date());
   const [end_datetime, set_end] = useState(new Date());
 
   const sessionid = getCookie('sessionid');
+  const chatroomid = 1; // debug
+  const eventid = 1 //debug
   if (sessionid === null) {
     return (
-      <html>
-      <body>
-      <p>Hey! You are not logged in. You will be redirected to the login page.</p>
-      {window.location.replace('/login')}
-      </body>
-      </html>
+      <div>
+        <p>Hey! You are not logged in. You will be redirected to the login page.</p>
+        {window.location.replace('/login')}
+      </div>
     )
   }
 
@@ -46,78 +47,37 @@ function EditEvent() {
       <div className="error text-red-700">{errorMessages.message}</div>
     );
 
-  function getCookie(name) {
-    function escape(s) {
-      return s.replace(/([.*+?\^$(){}|\[\]\/\\])/g, '\\$1');
-    }
-
-    const match = document.cookie.match(RegExp('(?:^|;\\s*)' + escape(name) + '=([^;]*)'));
-    return match ? match[1] : null;
-  }
-
   const handleSubmit = (event) => {
     // Prevent page reload
 
     event.preventDefault();
-    let {student_id, uni_id, email, graduation_year, major, hobbies, interests, fname, lname} = event_info
-    const new_fname = document.forms[0][0]._valueTracker.getValue();
-    const new_lname = document.forms[0][1]._valueTracker.getValue();
-    let new_email = document.forms[0][6]._valueTracker.getValue();
-    const new_hobbies = document.forms[0][7]._valueTracker.getValue();
-    const new_interests = document.forms[0][8]._valueTracker.getValue();
-    const current_pw = document.forms[0][9]._valueTracker.getValue();
-    const new_pw = document.forms[0][10]._valueTracker.getValue();
-    fname = new_fname === '' ? fname : new_fname;
-    lname = new_lname === '' ? lname : new_lname;
-    new_email = new_email === '' ? email : new_email;
-    hobbies = new_hobbies === '' ? hobbies : new_hobbies;
-    interests = new_interests === '' ? interests : new_interests;
+    const new_event = {
+      event_name: getValues('event_name'),
+      loc_name: getValues('loc_name'),
+      description: getValues('description')
+    };
+    set_event_info(new_event);
 
-    set_event_info({student_id, uni_id, email, graduation_year, major, hobbies, interests, fname, lname});
-
-    // update user profile
-    const postProfileData = async () => {
+    // update event
+    const postEventData = async () => {
       try {
         const response = await fetch(
-          'http://127.0.0.1:8060/editProfile/?sessionid=' + sessionid + '&hobbies=' +
-          encodeURIComponent(hobbies) + '&interests=' + encodeURIComponent(interests) + '&fname=' +
-          encodeURIComponent(fname) + '&lname=' + encodeURIComponent(lname) + '&new_email=' +
-          encodeURIComponent(new_email), {method: "PUT"}
+          'http://127.0.0.1:8060/editEvent/?sessionid=' + sessionid + '&chatroomID=' +
+          encodeURIComponent(chatroomid) + '&eventName=' + encodeURIComponent(new_event.name) + '&description=' +
+          encodeURIComponent(new_event.description) + '&locName=' + encodeURIComponent(new_event.loc_name) +
+          '&locCoord=' + encodeURIComponent(latitude + ',' + longitude) + '&startTime=' +
+          encodeURIComponent(start_datetime) + '&endTime=' + encodeURIComponent(end_datetime), {method: "PUT"}
         );
         data = await response.json();
       } catch (error) {
         setErrorMessages({name: "server", message: "Server Error: " + error})
       }
     }
-    const changePassword = async () => {
-      try {
-        const response = await fetch(
-          'http://127.0.0.1:8060/changePassword/?sessionid=' + sessionid + '&current_pw=' +
-          encodeURIComponent(current_pw) + '&new_pw=' + encodeURIComponent(new_pw), {method: "PUT"}
-        );
-        data = await response.json();
-      } catch (error) {
-        setErrorMessages({name: "server", message: "Server Error: " + error})
-      }
-      if (!data.result) {
-        setErrorMessages({name: "password", message: "Incorrect password."})
-      }
-    }
 
-    postProfileData().then(() => {
-      if (current_pw && new_pw) {
-        if (current_pw === new_pw) {
-          setErrorMessages({name: "password", message: "Current password and new password is the same."})
-          return;
-        }
-        changePassword().then(() => {
-          if (data.result) {
-            window.location.replace('/event')
-          }
-        })
-      } else {
-        window.location.replace('/event')
-      }
+    postEventData().then(() => {
+      console.log('post');
+      return;
+      window.location.replace('/event')
     });
 
   };
@@ -125,6 +85,8 @@ function EditEvent() {
   const handleReset = (event) => {
     // Prevent page reload
     event.preventDefault();
+    console.log('reset');
+    return;
     window.location.replace('/event');
   }
 
@@ -134,37 +96,40 @@ function EditEvent() {
       return;
     }
     try {
-      const sessionid = getCookie('sessionid');
+      const chatroom_id = 1; // change after chatroom pushed
       if (sessionid === null) {
         window.location.replace('/login');
       }
-      const response = await fetch('http://127.0.0.1:8060/getProfile/?sessionid=' + sessionid);
-      data = await response.json();
+      if (chatroom_id === null) {
+        window.location.replace('/chat');
+      }
 
-      const email_response = await fetch('http://127.0.0.1:8060/getEmail/?sessionid=' + sessionid);
-      email_fetched = await email_response.json();
+      const response = await fetch('http://127.0.0.1:8060/getEvent/?sessionID=' + sessionid + '&eventID=' + eventid + '&chatroomID' + chatroom_id);
+      data = await response.json();
     } catch (error) {
       setErrorMessages({name: "server", message: "Server Error: " + error})
     }
   }
 
-  fetchData().then(() => {
-    if (received_reply) {
-      return;
-    }
-    if (data.result.length === 0) {
-      data.result.push(['', '', email_fetched.result, '', '', '', '', '', '']);
-    }
-    const [student_id, uni_id, email, graduation_year, major, hobbies, interests, fname, lname] = data.result[0];
-    set_event_info({student_id, uni_id, email, graduation_year, major, hobbies, interests, fname, lname});
-    set_received_reply(true);
-  })
+  // fetchData().then(() => {
+  //   if (received_reply) {
+  //     return;
+  //   }
+  //   if (data.result.length === 0) {
+  //     window.location.replace('/events');
+  //   }
+  //   const [event_name, fname, lname, email, descript, location_name, location_coordinates, start_time, end_time] = data.result[0];
+  //   set_event_info({event_name: event_name, loc_name: location_name, description: descript});
+  //   const [lat, lng]=location_coordinates.split(',')
+  //   set_coords([lat,lng]);
+  //   set_start(new Date(Date.parse(start_time)));
+  //   set_end(new Date(Date.parse(end_time)));
+  //   set_received_reply(true);
+  // })
 
   const {
     register,
-    handleSubmit1,
-    watch,
-    formState: {errors},
+    getValues,
   } = useForm({
     values: returned_values,
   });
@@ -176,11 +141,14 @@ function EditEvent() {
   });
 
   function onClickAddress() {
-    let address = document.forms[0][20]._valueTracker.getValue()
+    let address = getValues('address')
+    if (address === '') {
+      return;
+    }
 
     // comment to prevent api usage, costs $$$. just enable this when we demo or sth
     // everything works here
-
+    //
     // fromAddress(address)
     //   .then(({results}) => {
     //     const {lat, lng} = results[0].geometry.location;
@@ -194,7 +162,8 @@ function EditEvent() {
 
 
   // load when api reply received and variables populated
-  return (received_reply && (
+  // return (received_reply && (
+  return ((
     <div className="container bootstrap snippets bootdeys">
       <div className="row">
         <div className="col-xs-12 col-sm-9">
@@ -245,8 +214,9 @@ function EditEvent() {
                     <input
                       className="form-control"
                       placeholder="Input address here"
+                      {...register('address')}
                     />
-                    <button className="btn btn-default" onClick={onClickAddress}>Enter</button>
+                    <button className="btn btn-default" type="button" onClick={onClickAddress}>Enter</button>
                     {renderErrorMessage("map")}
                     <iframe
                       width="600"
@@ -254,7 +224,7 @@ function EditEvent() {
                       loading="lazy"
                       allowFullScreen
                       referrerPolicy="no-referrer-when-downgrade"
-                      src={"https://www.google.com/maps/embed/v1/place?key="+API_KEY+"&q=" + latitude + "," + longitude}>
+                      src={"https://www.google.com/maps/embed/v1/place?key=" + API_KEY + "&q=" + latitude + "," + longitude}>
                     </iframe>
                   </div>
 

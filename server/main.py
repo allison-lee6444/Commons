@@ -111,10 +111,14 @@ def newMessages(chatroomID, dateTime):
 
 
 # Method to create a new event and save it in the DB.
-@app.post("/scheduleNewEvent/")
-def scheduleNewEvent(eventName, hostID, description, locName, locCoord, startTime, endTime, eventID):
+@app.post("/editEvent/")
+def editEvent(sessionid, chatroomID, eventName, description, locName, locCoord, startTime, endTime):
+    email = check_session_id(sessionid)
+    # check authorization using email and convert host id
+    host_id, uni_id = profiles.get_student_uni_id(email)
     return {
-        "result": events.create_event(eventName, hostID, description, locName, locCoord, startTime, endTime, eventID)
+        "result":
+            events.editEvent(chatroomID, eventName, host_id, uni_id, description, locName, locCoord, startTime, endTime)
     }
 
 
@@ -127,7 +131,7 @@ def joinEvent(eventID, studentID, chatroomID):
 # Method called when a student leaves an event.
 @app.put("/leaveEvent/")
 def leaveEvent(studentID, eventID):
-    return {"result": events.delete_event(studentID, eventID)}
+    return {"result": events.leave_event(studentID, eventID)}
 
 
 # Method called when the host of an event cancels the event.
@@ -136,10 +140,20 @@ def cancelEvent(hostID, eventID):
     return {"result": events.cancel_event(hostID, eventID)}
 
 
+# Method called to get event info of one event given event id
+@app.get("/getEvent/")
+def getEvent(sessionid, eventID, chatroomID):
+    email = check_session_id(sessionid)
+    student_id, uni_id = profiles.get_student_uni_id(email)
+    return {"result": events.get_event(eventID, chatroomID, student_id, uni_id)}
+
+
 # Method called to get all events a student is a part of.
 @app.get("/getEvents/")
-def getEvents(studentID):
-    return {"result": events.get_event(studentID)}
+def getEvents(sessionid):
+    email = check_session_id(sessionid)
+    student_id, uni_id = profiles.get_student_uni_id(email)
+    return {"result": events.get_events(student_id, uni_id)}
 
 
 # Method called to get all courses a student is in.
@@ -153,33 +167,41 @@ def getCourses(studentID):
 def hasConflict(startTime, endTime, studentID):
     return {"result": events.has_conflict(startTime, endTime, studentID)}
 
+
 @app.put("/saveMessage/")
 def saveMessage(sender_id, chatroomID, message_sent):
-    return {"result" : chatroom.saveMessage(sender_id, chatroomID, message_sent)}
+    return {"result": chatroom.saveMessage(sender_id, chatroomID, message_sent)}
+
 
 @app.get("/retrieveMessages/")
 def retrieveMessages(chatroom_id):
-    return {"result" : chatroom.retrieveMessages(chatroom_id)}
+    return {"result": chatroom.retrieveMessages(chatroom_id)}
+
 
 @app.post("/ImportStudentSchedule/")
 def importSchedule(values):
-    return {"result" : import_schedules.ImportStudentSchedule(values)}
+    return {"result": import_schedules.ImportStudentSchedule(values)}
+
 
 @app.post("/verifyIdentity/")
 def verifyIdentity(student_id, uni_id, email, fname, lname, graduation_year):
-    return {"result" : verify_identity.verifyIdentity(student_id, uni_id, email, fname, lname, graduation_year)}
+    return {"result": verify_identity.verifyIdentity(student_id, uni_id, email, fname, lname, graduation_year)}
+
 
 @app.post("/createFlashcard/")
 def createFlashcard(chatroom_id, front_text, back_text):
-    return {"result" : flashcard.createFlashcard(chatroom_id, front_text, back_text)}
+    return {"result": flashcard.createFlashcard(chatroom_id, front_text, back_text)}
+
 
 @app.delete("/deleteFlashcard/")
 def deleteFlashcard(chatroom_id, front_text, back_text):
-    return {"result" : flashcard.deleteFlashcard(chatroom_id, front_text, back_text)}
+    return {"result": flashcard.deleteFlashcard(chatroom_id, front_text, back_text)}
+
 
 @app.get("/getFlashcards/")
 def getAllFlashcards(chatroom_id):
-    return {"result" : flashcard.getFlashcards(chatroom_id)}
+    return {"result": flashcard.getFlashcards(chatroom_id)}
+
 
 # <<< [TEST - DELETE AFTER TEST] >>> #
 """@app.get("/test")

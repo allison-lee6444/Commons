@@ -1,3 +1,5 @@
+import json
+
 from fastapi import HTTPException
 
 from cursor import cur
@@ -5,13 +7,15 @@ import datetime
 
 
 # Create a new event.
-def create_event(event_name, host_id, description, loc_name, loc_coords, start_time, end_time, event_id):
+def editEvent(chatroom_id, event_name, host_id, uni_id, description, loc_name, loc_coords, start_time, end_time):
     try:
+
         cur.execute(
-            "INSERT INTO Event VALUES (%(event_name)s,%(host_id)s,%(description)s,%(loc_name)s,%(loc_coords)s,"
-            "%(startTime)s,%(endTime)s,%(eventID)s)",
-            {'event_name': event_name, 'host_id': host_id, 'description': description, 'loc_name': loc_name,
-             'loc_coords': loc_coords, 'startTime': start_time, 'endTime': end_time, 'eventID': event_id}
+            "INSERT INTO Event VALUES (%(event_name)s,%(host_id)s,%(uni_id)s,%(chatroom_id)s,%(description)s,%(loc_name)s,%(loc_coords)s,"
+            "%(startTime)s,%(endTime)s,DEFAULT)",
+            {'event_name': event_name, 'host_id': host_id, 'uni_id': uni_id, 'description': description,
+             'loc_name': loc_name,
+             'loc_coords': loc_coords, 'startTime': start_time, 'endTime': end_time, 'chatroom_id': chatroom_id}
         )
         return True
     except BaseException as e:
@@ -37,11 +41,21 @@ def join_event(event_id, student_id, chatroom_id):
 
 
 # User decided to leave an event.
-def delete_event(student_id, event_id):
+def leave_event(student_id, event_id):
+    parameters = {'studentID': student_id, 'eventID': event_id}
     try:
-        cur.execute("DELETE FROM going_to_event WHERE student_id = %(studentID)s AND event_id = %(eventID)s",
-                    {'studentID': student_id, 'eventID': event_id})
-        return True
+        # Check if the row even exists. This is necessary as it would return True still even if it didn't exist.
+        cur.execute("SELECT * FROM going_to_event WHERE student_id = %(studentID)s AND event_id = %(eventID)s",
+                    parameters
+                    )
+        result = cur.fetchall()
+
+        if len(result) != 0:
+            cur.execute("DELETE FROM going_to_event WHERE student_id = %(studentID)s AND event_id = %(eventID)s",
+                        parameters
+                        )
+            return True
+        return False
     except BaseException as e:
         print(f'Exception: {e}')
         raise HTTPException(
@@ -52,17 +66,24 @@ def delete_event(student_id, event_id):
 
 # Host decided to cancel an event.
 def cancel_event(host_id, event_id):
+    parameters = {'eventID': event_id, 'host_id': host_id}
     try:
-        cur.execute(
-            "DELETE FROM event WHERE host_id = %(host_id)s AND event_id = %(eventID)s",
-            {'eventID': event_id, 'host_id': host_id}
-        )
+        # Check if the row exists.
+        cur.execute("SELECT * FROM event WHERE host_id = %(host_id)s AND event_id = %(eventID)s", parameters)
+        resultE = cur.fetchall()
 
-        cur.execute("SELECT student_id FROM going_to_event WHERE event_id = %(eventID)s", {'eventID': event_id})
-        result = cur.fetchall()
-        for student in result:
-            delete_event(student[0], event_id)
-        return True
+        if len(resultE) != 0:
+            cur.execute("DELETE FROM event WHERE host_id = %(host_id)s AND event_id = %(eventID)s", parameters)
+
+            cur.execute("SELECT * FROM going_to_event WHERE event_id = %(eventID)s", {'eventID': event_id})
+            resultGTE = cur.fetchall()
+
+            # If there are students going to the event, delete it from the table.
+            if len(resultGTE) != 0:
+                cur.execute("DELETE FROM going_to_event WHERE event_id = %(eventID)s", {'eventID': event_id})
+
+            return True
+        return False
     except BaseException as e:
         print(f'Exception: {e}')
         raise HTTPException(
@@ -72,12 +93,18 @@ def cancel_event(host_id, event_id):
 
 
 # Get a list of all events a user is participating in.
-def get_event(student_id):
+def get_events(student_id, uni_id):
     try:
         cur.execute(
-            "SELECT * FROM going_to_event LEFT JOIN event ON going_to_event.event_id = event.event_id "
-            "WHERE going_to_event.studentID = %(studentID)s", {'studentID': student_id}
+            "SELECT going_to_event.event_id,going_to_event.chatroom_id"
+            ",event.event_name,host.fname,host.lname,event.descript,event.location_name,"
+            "event.start_time,event.end_time"
+            " FROM going_to_event LEFT JOIN event ON going_to_event.event_id = event.event_id "
+            "JOIN student AS host ON event.host_id=student.student_id AND event.uni_id=student.uni_id"
+            "WHERE going_to_event.student_id = %(student_id)s AND going_to_event.uni_id = %(uni_id)s",
+            {'student_id': student_id, 'uni_id': uni_id}
         )
+
         result = cur.fetchall()
         return result
     except BaseException as e:
@@ -87,41 +114,55 @@ def get_event(student_id):
             detail="Database Error",
         )
 
-# Get a list of all courses a user is in.
-def get_courses(student_id):
+
+# Get one event given id, untested
+def get_event(event_id,chatroom_id, student_id, uni_id):
     try:
         cur.execute(
-            "SELECT * FROM takes LEFT JOIN section ON takes.uni_id = section.uni_id AND"
-            " takes.course_id = section.course_id AND takes.section_id = section.section_id WHERE "
-            "takes.student_id = %(student_id)s",
-            {'student_id': student_id})
+            "SELECT event_name, fname, lname, email, descript, location_name, location_coordinates, start_time, end_time"
+            "FROM event JOIN student ON event.host_id=student.student_id AND event.uni_id=student.uni_id JOIN"
+            "in_chatroom using (%(chatroom_id)s)"  # confirm authorization (non-participants
+            "WHERE event_id=%(event_id)s AND in_chatroom.student_id=%(student_id)s AND in_chatroom.uni_id=%(uni_id)s",
+            {"event_id": event_id, "chatroom_id": chatroom_id, "student_id": student_id, "uni_id": uni_id}
+        )
         result = cur.fetchall()
-        return result
+
+        if len(result)!=1:
+            raise LookupError("Number of records does not equal 1")
+        return json.dumps(result)
     except BaseException as e:
         print(f'Exception: {e}')
         raise HTTPException(
             status_code=500,
             detail="Database Error",
         )
+
+
+# Get a list of all courses a user is in.
+def get_courses(student_id, uni_id):
+    try:
+        cur.execute(
+            "SELECT * FROM takes LEFT JOIN section ON takes.uni_id = section.uni_id AND"
+            " takes.course_id = section.course_id AND takes.section_id = section.section_id WHERE "
+            "takes.student_id = %(student_id)s AND takes.uni_id = %(uni_id)s",
+            {'student_id': student_id, 'uni_id': uni_id})
+        result = cur.fetchall()
+        return json.dumps(result)
+    except BaseException as e:
+        print(f'Exception: {e}')
+        raise HTTPException(
+            status_code=500,
+            detail="Database Error",
+        )
+
 
 # Takes a DateTime object and returns a list of (CourseStartEpoch,CourseEndEpoch) for each course that meets on the same day.
 def get_courses_meeting_on_same_day(student_id, event_time):
     format = '%Y-%m-%d %H:%M:%S'
     output = []
 
-    # Used to convert a day of the week to the name of the column that stores whether or not a course meets on that day.
-    day_to_col = {
-        "Monday": "meetsMon",
-        "Tuesday": "meetsTue",
-        "Wednesday": "meetsWed",
-        "Thursday": "meetsThu",
-        "Friday": "meetsFri",
-        "Saturday": "meetsSat",
-        "Sunday": "meetsSun"
-    }
-
     # Takes the DateTime and gets the day of the week.
-    day_of_week = event_time.strftime('%A')
+    week_meet_day = 'meets' + event_time.strftime('%A')[:3]
     # Gets only the date from the Datetime obj.
     date = event_time.strftime('%Y-%m-%d')
 
@@ -134,7 +175,7 @@ def get_courses_meeting_on_same_day(student_id, event_time):
             "takes.course_id = section.course_id AND takes.section_id = section.section_id"
             " WHERE takes.student_id = %(studentID)s AND section.%(day_col)s is true "
             "AND section.semStartDate < %(date)s AND section.semEndDate > %(date)s",
-            {'studentID': student_id, 'day_col': day_to_col[day_of_week], 'date': date}
+            {'studentID': student_id, 'day_col': week_meet_day, 'date': date}
         )
     except BaseException as e:
         print(f'Exception: {e}')
@@ -149,9 +190,9 @@ def get_courses_meeting_on_same_day(student_id, event_time):
     # For all course times, add them to the date of the event, convert them to epoch time, and add it to the output list.
     # If an event occurs during the semester, and the event day of the week is on the same day as when a class meets, there may be a conflict.
     for time in result:
-        course_start_time = date + " " + time[0]
+        course_start_time = date + " " + time[0].strftime('%H:%M:%S')
         course_start_epoch = (datetime.datetime.strptime(course_start_time, format)).timestamp()
-        course_end_time = date + " " + time[1]
+        course_end_time = date + " " + time[1].strftime('%H:%M:%S')
         course_end_epoch = (datetime.datetime.strptime(course_end_time, format)).timestamp()
         output.append((course_start_epoch, course_end_epoch))
     return output
@@ -173,8 +214,8 @@ def has_conflict(start_time, end_time, student_id):
     try:
         cur.execute(
             "SELECT event.start_time,event.end_time FROM going_to_event LEFT JOIN event "
-            "ON going_to_event.event_id = event.event_id WHERE going_to_event.studentID = %(studentID)s",
-            {'studentID': student_id}
+            "ON going_to_event.event_id = event.event_id WHERE going_to_event.student_id = %(student_id)s",
+            {'student_id': student_id}
         )
     except BaseException as e:
         print(f'Exception: {e}')
@@ -185,10 +226,10 @@ def has_conflict(start_time, end_time, student_id):
     event_result = cur.fetchall()  # <<< [TEST - UNCOMMENT AFTER TEST] >>>
     # event_result = [("2023-11-03 07:00:00","2023-11-03 08:30:00"),("2023-11-03 15:00:00","2023-11-03 16:00:00"),("2023-11-04 10:00:00","2023-11-04 12:00:00")] # <<< [TEST - DELETE AFTER TEST] >>>
 
-    # Go through event_result (ex: [("YYYY-MM-DD HH:mm:ss", "YYYY-MM-DD HH:mm:ss"), ...]) and convert them into epoch values.
+    # Go through event_result (ex: [(datetime_ob, datetime_obj), ...] and convert them into epoch values.
     for i in range(len(event_result)):
-        new_start = (datetime.datetime.strptime(event_result[i][0], format)).timestamp()
-        new_end = (datetime.datetime.strptime(event_result[i][1], format)).timestamp()
+        new_start = (datetime.datetime.strptime(event_result[i][0].strftime(format), format)).timestamp()
+        new_end = (datetime.datetime.strptime(event_result[i][1].strftime(format), format)).timestamp()
         event_result[i] = (new_start, new_end)
 
     # > Get all courses the student is in as a list of tuples of type (CourseStartEpoch,CourseEndEpoch).

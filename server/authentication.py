@@ -1,5 +1,3 @@
-import traceback
-
 import bcrypt
 from fastapi import HTTPException
 
@@ -28,7 +26,7 @@ def check_login(email, password):
 # Register a new account.
 def register_account(email, password):
     # Check if the username exists, if it does return false.
-    cur.execute("SELECT * FROM Student WHERE email=%(email)s", {'email': email})
+    cur.execute("SELECT * FROM student WHERE email=%(email)s", {'email': email})
     result = cur.fetchall()
 
     if len(result) != 0:
@@ -38,9 +36,9 @@ def register_account(email, password):
     hashed_password = bcrypt.hashpw(password.encode('utf8'), salt).decode('utf8')
     salt = salt.decode('utf8')
     try:
-        cur.execute("INSERT INTO Student VALUES (%(email)s,%(hashed_password)s,%(salt)s)",
+        cur.execute("INSERT INTO student (email, password, salt) VALUES (%(email)s,%(hashed_password)s,%(salt)s)",
                     {'email': email, 'hashed_password': hashed_password, 'salt': salt})
-        cur.execute("SELECT * FROM Student WHERE email=%(email)s", {'email': email})
+        cur.execute("SELECT * FROM student WHERE email=%(email)s", {'email': email})
 
     except BaseException as e:
         print(f'Exception: {e}')
