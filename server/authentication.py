@@ -1,17 +1,11 @@
 import bcrypt
 from fastapi import HTTPException
 
-from cursor import cur
 
-def check_login(email, password):
+def check_login(cur, email, password):
     # Check if we find a username and password that matches.
     try:
         cur.execute("SELECT salt FROM student WHERE email=%(email)s", {'email': email})
-        result = cur.fetchall()
-
-        if len(result) == 0:
-            return False
-
         salt = cur.fetchall()[0][0]
         hashed_password = bcrypt.hashpw(password.encode('utf8'), salt.encode('utf8')).decode('utf8')
         # cur.execute("SELECT * FROM test WHERE id=%s and number=%s",(username,hashed_password)) # Test
@@ -29,9 +23,9 @@ def check_login(email, password):
 
 
 # Register a new account.
-def register_account(email, password):
+def register_account(cur, email, password):
     # Check if the username exists, if it does return false.
-    cur.execute("SELECT * FROM Student WHERE email=%(email)s", {'email': email})
+    cur.execute("SELECT * FROM student WHERE email=%(email)s", {'email': email})
     result = cur.fetchall()
 
     if len(result) != 0:
@@ -41,9 +35,9 @@ def register_account(email, password):
     hashed_password = bcrypt.hashpw(password.encode('utf8'), salt).decode('utf8')
     salt = salt.decode('utf8')
     try:
-        cur.execute("INSERT INTO Student VALUES (%(email)s,%(hashed_password)s,%(salt)s)",
+        cur.execute("INSERT INTO student (email, password, salt) VALUES (%(email)s,%(hashed_password)s,%(salt)s)",
                     {'email': email, 'hashed_password': hashed_password, 'salt': salt})
-        cur.execute("SELECT * FROM Student WHERE email=%(email)s", {'email': email})
+        cur.execute("SELECT * FROM student WHERE email=%(email)s", {'email': email})
 
     except BaseException as e:
         print(f'Exception: {e}')
@@ -54,8 +48,8 @@ def register_account(email, password):
     return True
 
 
-def change_password(email, current_pw, new_pw):
-    if not check_login(email, current_pw):
+def change_password(cur, email, current_pw, new_pw):
+    if not check_login(cur, email, current_pw):
         return False
 
     cur.execute("SELECT salt FROM student WHERE email=%(email)s", {'email': email})
@@ -72,4 +66,3 @@ def change_password(email, current_pw, new_pw):
             detail="Database Error",
         )
     return True
-

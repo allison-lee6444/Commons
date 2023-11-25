@@ -3,6 +3,7 @@
 import React, {useState} from 'react';
 import './Profile.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import {getCookie} from "@/app/utils"
 
 function Profile() {
 
@@ -25,22 +26,11 @@ function Profile() {
   const sessionid = getCookie('sessionid');
   if (sessionid === null) {
     return (
-      <html>
-      <body>
-      <p>Hey! You are not logged in. You will be redirected to the login page.</p>
-      {window.location.replace('/login')}
-      </body>
-      </html>
+      <div>
+        <p>Hey! You are not logged in. You will be redirected to the login page.</p>
+        {window.location.replace('/login')}
+      </div>
     )
-  }
-
-  function getCookie(name) {
-    function escape(s) {
-      return s.replace(/([.*+?\^$(){}|\[\]\/\\])/g, '\\$1');
-    }
-
-    const match = document.cookie.match(RegExp('(?:^|;\\s*)' + escape(name) + '=([^;]*)'));
-    return match ? match[1] : null;
   }
 
   const fetchData = async () => {

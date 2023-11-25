@@ -67,5 +67,4 @@ node_modules/
 node_modules/
 static/
 cache/
-.next/
-
+/ui/.next/
