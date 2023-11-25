@@ -1,9 +1,8 @@
 import bcrypt
 from fastapi import HTTPException
 
-from cursor import cur
 
-def check_login(email, password):
+def check_login(cur, email, password):
     # Check if we find a username and password that matches.
     try:
         cur.execute("SELECT salt FROM student WHERE email=%(email)s", {'email': email})
@@ -24,7 +23,7 @@ def check_login(email, password):
 
 
 # Register a new account.
-def register_account(email, password):
+def register_account(cur, email, password):
     # Check if the username exists, if it does return false.
     cur.execute("SELECT * FROM student WHERE email=%(email)s", {'email': email})
     result = cur.fetchall()
@@ -49,8 +48,8 @@ def register_account(email, password):
     return True
 
 
-def change_password(email, current_pw, new_pw):
-    if not check_login(email, current_pw):
+def change_password(cur, email, current_pw, new_pw):
+    if not check_login(cur, email, current_pw):
         return False
 
     cur.execute("SELECT salt FROM student WHERE email=%(email)s", {'email': email})
@@ -67,4 +66,3 @@ def change_password(email, current_pw, new_pw):
             detail="Database Error",
         )
     return True
-

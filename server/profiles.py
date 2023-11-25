@@ -1,8 +1,7 @@
-from cursor import cur
 from fastapi import HTTPException
 
 
-def edit_profile(email, hobbies, interests, fname, lname, new_email):
+def edit_profile(cur, email, hobbies, interests, fname, lname, new_email):
     try:
         cur.execute("SELECT * FROM student WHERE email=%(email)s", {'email': email})
         result = cur.fetchall()
@@ -25,7 +24,7 @@ def edit_profile(email, hobbies, interests, fname, lname, new_email):
     return True
 
 
-def get_profile(email):
+def get_profile(cur, email):
     try:
         cur.execute("SELECT student_id, uni_id, email, graduation_year, major, hobbies, interests, fname, lname"
                     " FROM student WHERE email=%(email)s", {'email': email})
@@ -40,7 +39,7 @@ def get_profile(email):
     return {'result': result}
 
 
-def get_student_uni_id(email):
+def get_student_uni_id(cur, email):
     try:
         cur.execute("SELECT student_id,uni_id FROM student WHERE email=%(email)s", {'email': email})
     except BaseException as e:

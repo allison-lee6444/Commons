@@ -1,13 +1,10 @@
 import json
-
 from fastapi import HTTPException
-
-from cursor import cur
 import datetime
 
 
 # Create a new event.
-def editEvent(chatroom_id, event_name, host_id, uni_id, description, loc_name, loc_coords, start_time, end_time):
+def editEvent(cur, chatroom_id, event_name, host_id, uni_id, description, loc_name, loc_coords, start_time, end_time):
     try:
 
         cur.execute(
@@ -27,7 +24,7 @@ def editEvent(chatroom_id, event_name, host_id, uni_id, description, loc_name, l
 
 
 # When a student hits the "join event" button.
-def join_event(event_id, student_id, chatroom_id):
+def join_event(cur, event_id, student_id, chatroom_id):
     try:
         cur.execute("INSERT INTO going_to_event VALUES (%(eventID)s,%(studentID)s,%(chatroomID)s)",
                     {'studentID': student_id, 'eventID': event_id, 'chatroomID': chatroom_id})
@@ -41,7 +38,7 @@ def join_event(event_id, student_id, chatroom_id):
 
 
 # User decided to leave an event.
-def leave_event(student_id, event_id):
+def leave_event(cur, student_id, event_id):
     parameters = {'studentID': student_id, 'eventID': event_id}
     try:
         # Check if the row even exists. This is necessary as it would return True still even if it didn't exist.
@@ -65,7 +62,7 @@ def leave_event(student_id, event_id):
 
 
 # Host decided to cancel an event.
-def cancel_event(host_id, event_id):
+def cancel_event(cur, host_id, event_id):
     parameters = {'eventID': event_id, 'host_id': host_id}
     try:
         # Check if the row exists.
@@ -93,7 +90,7 @@ def cancel_event(host_id, event_id):
 
 
 # Get a list of all events a user is participating in.
-def get_events(student_id, uni_id):
+def get_events(cur, student_id, uni_id):
     try:
         cur.execute(
             "SELECT going_to_event.event_id,going_to_event.chatroom_id"
@@ -116,7 +113,7 @@ def get_events(student_id, uni_id):
 
 
 # Get one event given id, untested
-def get_event(event_id,chatroom_id, student_id, uni_id):
+def get_event(cur, event_id, chatroom_id, student_id, uni_id):
     try:
         cur.execute(
             "SELECT event_name, fname, lname, email, descript, location_name, location_coordinates, start_time, end_time"
@@ -127,7 +124,7 @@ def get_event(event_id,chatroom_id, student_id, uni_id):
         )
         result = cur.fetchall()
 
-        if len(result)!=1:
+        if len(result) != 1:
             raise LookupError("Number of records does not equal 1")
         return json.dumps(result)
     except BaseException as e:
@@ -139,7 +136,7 @@ def get_event(event_id,chatroom_id, student_id, uni_id):
 
 
 # Get a list of all courses a user is in.
-def get_courses(student_id, uni_id):
+def get_courses(cur, student_id, uni_id):
     try:
         cur.execute(
             "SELECT * FROM takes LEFT JOIN section ON takes.uni_id = section.uni_id AND"
@@ -157,7 +154,7 @@ def get_courses(student_id, uni_id):
 
 
 # Takes a DateTime object and returns a list of (CourseStartEpoch,CourseEndEpoch) for each course that meets on the same day.
-def get_courses_meeting_on_same_day(student_id, event_time):
+def get_courses_meeting_on_same_day(cur, student_id, event_time):
     format = '%Y-%m-%d %H:%M:%S'
     output = []
 
@@ -199,7 +196,7 @@ def get_courses_meeting_on_same_day(student_id, event_time):
 
 
 # For a given event's start/end times and a student, return True if the student has a time conflict.  False otherwise.
-def has_conflict(start_time, end_time, student_id):
+def has_conflict(cur, start_time, end_time, student_id):
     format = '%Y-%m-%d %H:%M:%S'
 
     # > Convert start/end time of event into DateTime obj.
