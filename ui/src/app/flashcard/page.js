@@ -1,8 +1,5 @@
 // credit : https://codingartistweb.com/2022/08/flashcard-app-with-javascript/
 
-"use client"
-import "ui/src/app/flashcard/style.css"
-
 const container = document.querySelector(".container");
 const addQuestionCard = document.getElementById("add-question-card");
 const cardButton = document.getElementById("save-btn");

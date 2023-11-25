@@ -1,5 +1,11 @@
 {
   "pages": {
+    "/layout": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/css/app/layout.css",
+      "static/chunks/app/layout.js"
+    ],
     "/login/layout": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
@@ -11,11 +17,10 @@
       "static/css/app/login/page.css",
       "static/chunks/app/login/page.js"
     ],
-    "/flashcard/page": [
+    "/profile/layout": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/css/app/flashcard/page.css",
-      "static/chunks/app/flashcard/page.js"
+      "static/chunks/app/profile/layout.js"
     ],
     "/page": [
       "static/chunks/webpack.js",
@@ -23,11 +28,17 @@
       "static/css/app/page.css",
       "static/chunks/app/page.js"
     ],
-    "/layout": [
+    "/chat/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/css/app/layout.css",
-      "static/chunks/app/layout.js"
+      "static/css/app/chat/page.css",
+      "static/chunks/app/chat/page.js"
+    ],
+    "/profile/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/css/app/profile/page.css",
+      "static/chunks/app/profile/page.js"
     ]
   }
 }

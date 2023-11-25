@@ -1,7 +1,5 @@
 import psycopg2
 from datetime import datetime
-import flashcard
-import chatroom
 
 conn = psycopg2.connect(
     host="localhost",
@@ -18,7 +16,7 @@ def createProfile(student_id, uni_id, name, graduation_year, major, hobbies, int
     cur.execute(f"INSERT INTO student_profile VALUES(%s, %s, %s, %s, %s, %s, %s)", (student_id, uni_id, name, graduation_year, major, hobbies, interests))
 
 univ_id = 'NYU'
-#cur.execute(f"INSERT INTO university VALUES(%s)", [univ_id])
+cur.execute(f"INSERT INTO university VALUES(%s)", [univ_id])
 cur.execute(f"SELECT * FROM university")
 print(cur.fetchall())
 
@@ -42,7 +40,7 @@ print(cur.fetchall())
 print(datetime.now())
 
 field = 'a'
-#cur.execute(f"INSERT INTO student(email, password, salt) VALUES('{field}', '{field}', '{field}')")
+cur.execute(f"INSERT INTO student(email, password, salt) VALUES('{field}', '{field}', '{field}')")
 cur.execute('SELECT * FROM student')
 print(cur.fetchall())
 s_id = 1
@@ -71,25 +69,7 @@ def createChatroom(user_id, chatroom_name, uni_id):
     chatroom_id = cur.fetchall()[0][0]
     
 
-#createChatroom("a", "Rubix Cube Club", "NYU")
+createChatroom("Rubix Cube Club", "NYU")
 
-flashcard.createFlashcard('7', 'abc', 'def')
-print(flashcard.getFlashcards('7'))
 
-import random
-import string
-
-invite_id = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
-print(invite_id)
-
-#cur.execute("INSERT INTO attends VALUES('a', '123', 'NYU')")
-cur.execute("SELECT * FROM attends")
-print(cur.fetchall()[0][0])
-
-#cur.execute("INSERT INTO course VALUES('CS101', 'NYU')")
-#cur.execute("INSERT INTO section VALUES('CS101', 'NYU', 'A')")
-#cur.execute("INSERT INTO in_chatroom(student_id, uni_id, chatroom_id) VALUES('123', 'NYU', '7')")
-
-print(chatroom.saveMessage('123', '7', 'hello'))
-cur.execute("SELECT * FROM message")
-print(cur.fetchall())
+   
