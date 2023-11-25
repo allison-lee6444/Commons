@@ -10,11 +10,11 @@ DROP TABLE IF EXISTS takes;
 DROP TABLE IF EXISTS section;
 DROP TABLE IF EXISTS student_profile;
 DROP TABLE IF EXISTS attends;
-DROP TABLE IF EXISTS attends;
 DROP TABLE IF EXISTS student;
 DROP TABLE IF EXISTS course;
 DROP TABLE IF EXISTS university;;
 DROP TABLE IF EXISTS game;
+DROP TABLE IF EXISTS event;
 
 
 
@@ -81,8 +81,6 @@ CREATE TABLE IF NOT EXISTS chatroom(
     chatroom_name varchar(255) NOT NULL,
     uni_id varchar(255) NOT NULL,
     course_id varchar(255),
-    invite_id varchar(10), -- random string of length 10 characters
-    --only non-course chatrooms will have invite_ids, because students will get added automatically to course chatrooms
     primary key(id),
     foreign key(uni_id) REFERENCES university(id) ON DELETE CASCADE  
 );
