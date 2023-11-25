@@ -32,26 +32,22 @@ export default function Login() {
     // Find user login info
     const fetchData = async () => {
       try {
-        // commented out cause login didnt work for me
-        // const response = await fetch('http://127.0.0.1:8060/login/?email=' + encodeURIComponent(email) + '&password=' + encodeURIComponent(password));
-        // data = await response.json();
+        const response = await fetch('http://127.0.0.1:8060/login/?email=' + encodeURIComponent(email) + '&password=' + encodeURIComponent(password));
+        data = await response.json();
         localStorage.setItem("userName", email);
-        window.location.replace("/chat")
       } catch (error) {
         setErrorMessages({name: "server", message: "Server Error: "+error})
       }
     }
 
     const set_cookie = () => {
-      // commented out cause login didnt work for me
-      // if (data.result) {
-      //   setIsSubmitted(true);
-      //   document.cookie='sessionid='+data.sessionid;
-      //   window.location.replace('/profile');
-      // } else {
-      //   setErrorMessages({name: "input", message: input_error});
-      // }
-      return
+      if (data.result) {
+        setIsSubmitted(true);
+        document.cookie='sessionid='+data.sessionid;
+        window.location.replace('/chat');
+      } else {
+        setErrorMessages({name: "input", message: input_error});
+      }
     }
 
     fetchData().then(set_cookie);

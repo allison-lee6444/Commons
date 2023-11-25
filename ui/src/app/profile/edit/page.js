@@ -1,12 +1,13 @@
 /* credit: https://richreact.com/react-examples/Edit-profile-page#code-editor1 */
 "use client"
-import React, {useEffect, useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import './EditProfile.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import {useForm} from "react-hook-form"
+import {getCookie} from "@/app/utils"
 
 function EditProfile() {
   const [errorMessages, setErrorMessages] = useState({});
-  const [isSubmitted, setIsSubmitted] = useState(false);
   const [received_reply, set_received_reply] = useState(false);
   const [profile_info, set_profile_info] = useState({
     student_id: '',
@@ -20,16 +21,15 @@ function EditProfile() {
     lname: ''
   });
 
-  let data, email_fetched;
+  let data, email_fetched, returned_values;
+
   const sessionid = getCookie('sessionid');
   if (sessionid === null) {
     return (
-      <html>
-      <body>
-      <p>Hey! You are not logged in. You will be redirected to the login page.</p>
-      {window.location.replace('/login')}
-      </body>
-      </html>
+      <div>
+        <p>Hey! You are not logged in. You will be redirected to the login page.</p>
+        {window.location.replace('/login')}
+      </div>
     )
   }
 
@@ -39,42 +39,35 @@ function EditProfile() {
       <div className="error text-red-700">{errorMessages.message}</div>
     );
 
-  function getCookie(name) {
-    function escape(s) {
-      return s.replace(/([.*+?\^$(){}|\[\]\/\\])/g, '\\$1');
-    }
-
-    const match = document.cookie.match(RegExp('(?:^|;\\s*)' + escape(name) + '=([^;]*)'));
-    return match ? match[1] : null;
-  }
-
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     // Prevent page reload
     event.preventDefault();
-    let {student_id, uni_id, email, graduation_year, major, hobbies, interests, fname, lname} = profile_info
-    const new_fname = document.forms[0][0]._valueTracker.getValue();
-    const new_lname = document.forms[0][1]._valueTracker.getValue();
-    let new_email = document.forms[0][6]._valueTracker.getValue();
-    const new_hobbies = document.forms[0][7]._valueTracker.getValue();
-    const new_interests = document.forms[0][8]._valueTracker.getValue();
-    const current_pw = document.forms[0][9]._valueTracker.getValue();
-    const new_pw = document.forms[0][10]._valueTracker.getValue();
-    fname = new_fname === '' ? fname : new_fname;
-    lname = new_lname === '' ? lname : new_lname;
-    new_email = new_email === '' ? email : new_email;
-    hobbies = new_hobbies === '' ? hobbies : new_hobbies;
-    interests = new_interests === '' ? interests : new_interests;
 
-    set_profile_info({student_id, uni_id, email, graduation_year, major, hobbies, interests, fname, lname});
+    let old_email = profile_info.email;
+
+    const new_profile = {
+      student_id: getValues('student_id'),
+      uni_id: getValues('uni_id'),
+      email: getValues('email') === '' ? old_email : getValues('email'),
+      graduation_year: getValues('graduation_year'),
+      major: getValues('major'),
+      hobbies: getValues('hobbies'),
+      interests: getValues('interests'),
+      fname: getValues('fname'),
+      lname: getValues('lname')
+    };
+    set_profile_info(profile_info);
+    const current_pw = getValues('curr_pw');
+    const new_pw = getValues('new_pw');
 
     // update user profile
     const postProfileData = async () => {
       try {
         const response = await fetch(
           'http://127.0.0.1:8060/editProfile/?sessionid=' + sessionid + '&hobbies=' +
-          encodeURIComponent(hobbies) + '&interests=' + encodeURIComponent(interests) + '&fname=' +
-          encodeURIComponent(fname) + '&lname=' + encodeURIComponent(lname) + '&new_email=' +
-          encodeURIComponent(new_email), {method: "PUT"}
+          encodeURIComponent(new_profile.hobbies) + '&interests=' + encodeURIComponent(new_profile.interests) + '&fname=' +
+          encodeURIComponent(new_profile.fname) + '&lname=' + encodeURIComponent(new_profile.lname) + '&new_email=' +
+          encodeURIComponent(new_profile.email), {method: "PUT"}
         );
         data = await response.json();
       } catch (error) {
@@ -96,21 +89,20 @@ function EditProfile() {
       }
     }
 
-    postProfileData().then(() => {
-      if (current_pw && new_pw) {
-        if (current_pw === new_pw) {
-          setErrorMessages({name: "password", message: "Current password and new password is the same."})
-          return;
-        }
-        changePassword().then(() => {
-          if (data.result) {
-            window.location.replace('/profile')
-          }
-        })
-      } else {
+    await postProfileData();
+    if (current_pw && new_pw) {
+      if (current_pw === new_pw) {
+        setErrorMessages({name: "password", message: "Current password and new password is the same."})
+        return;
+      }
+      await changePassword();
+      if (data.result) {
         window.location.replace('/profile')
       }
-    });
+
+    } else {
+      window.location.replace('/profile')
+    }
 
   };
 
@@ -152,6 +144,13 @@ function EditProfile() {
     set_received_reply(true);
   })
 
+  const {
+    register,
+    getValues
+  } = useForm({
+    values: returned_values,
+  });
+
 
   // load when api reply received and variables populated
   return (received_reply && (
@@ -171,45 +170,77 @@ function EditProfile() {
               </div>
               <div className="panel-body">
                 <div className="form-group">
-                  <label className="col-sm-2 control-label">First name</label>
+                  <label htmlFor="fname" className="col-sm-2 control-label">First Name</label>
                   <div className="col-sm-10">
-                    <input type="text" className="form-control" placeholder={profile_info.fname}/>
+                    <input
+                      className="form-control"
+                      defaultValue={profile_info.fname}
+                      required={true}
+                      {...register("fname", {required: true})}
+                    />
                   </div>
                 </div>
                 <div className="form-group">
-                  <label className="col-sm-2 control-label">Last name</label>
+                  <label htmlFor="lname" className="col-sm-2 control-label">Last Name</label>
                   <div className="col-sm-10">
-                    <input type="text" className="form-control" placeholder={profile_info.lname}/>
+                    <input
+                      className="form-control"
+                      defaultValue={profile_info.lname}
+                      required={true}
+                      {...register("lname")}
+                    />
                   </div>
                 </div>
                 <div className="form-group">
-                  <label className="col-sm-2 control-label">School</label>
+                  <label htmlFor="uni_id" className="col-sm-2 control-label">School</label>
                   <div className="col-sm-10">
-                    <input type="text" className="form-control" value={profile_info.uni_id} disabled/>
+                    <input
+                      className="form-control"
+                      defaultValue={profile_info.uni_id}
+                      {...register("uni_id", {disabled: true})}
+                    />
                   </div>
                 </div>
                 <div className="form-group">
-                  <label className="col-sm-2 control-label">Student ID</label>
+                  <label htmlFor="student_id" className="col-sm-2 control-label">Student ID</label>
                   <div className="col-sm-10">
-                    <input type="text" className="form-control" value={profile_info.student_id} disabled/>
+                    <input
+                      className="form-control"
+                      defaultValue={profile_info.student_id}
+                      {...register("student_id", {disabled: true})}
+                    />
                   </div>
                 </div>
                 <div className="form-group">
-                  <label className="col-sm-2 control-label">Graduation year</label>
+                  <label htmlFor="graduation_year" className="col-sm-2 control-label">Graduation Year</label>
                   <div className="col-sm-10">
-                    <input type="text" className="form-control" value={profile_info.graduation_year} disabled/>
+                    <input
+                      className="form-control"
+                      defaultValue={profile_info.graduation_year}
+                      {...register("graduation_year", {disabled: true})}
+                    />
                   </div>
                 </div>
                 <div className="form-group">
-                  <label className="col-sm-2 control-label">Major</label>
+                  <label htmlFor="major" className="col-sm-2 control-label">Major</label>
                   <div className="col-sm-10">
-                    <input type="text" className="form-control" value={profile_info.major} disabled/>
+                    <input
+                      className="form-control"
+                      defaultValue={profile_info.major}
+                      {...register("major", {disabled: true})}
+                    />
                   </div>
                 </div>
                 <div className="form-group">
-                  <label className="col-sm-2 control-label">Email</label>
+                  <label htmlFor="email" className="col-sm-2 control-label">Email</label>
                   <div className="col-sm-10">
-                    <input type="email" className="form-control" placeholder={profile_info.email} disabled={false}/>
+                    <input
+                      type="email"
+                      className="form-control"
+                      defaultValue={profile_info.email}
+                      required={true}
+                      {...register("email")}
+                    />
                   </div>
                 </div>
               </div>
@@ -221,15 +252,23 @@ function EditProfile() {
               </div>
               <div className="panel-body">
                 <div className="form-group">
-                  <label className="col-sm-2 control-label">Hobbies</label>
+                  <label htmlFor="hobbies" className="col-sm-2 control-label">Hobbies</label>
                   <div className="col-sm-10">
-                    <textarea rows="3" className="form-control" placeholder={profile_info.hobbies}></textarea>
+                    <textarea
+                      className="form-control"
+                      defaultValue={profile_info.hobbies}
+                      {...register("hobbies")}
+                    />
                   </div>
                 </div>
                 <div className="form-group">
-                  <label className="col-sm-2 control-label">Interests</label>
+                  <label htmlFor="interests" className="col-sm-2 control-label">Interests</label>
                   <div className="col-sm-10">
-                    <textarea rows="3" className="form-control" placeholder={profile_info.interests}></textarea>
+                    <textarea
+                      className="form-control"
+                      defaultValue={profile_info.interests}
+                      {...register("interests")}
+                    />
                   </div>
                 </div>
               </div>
@@ -241,15 +280,23 @@ function EditProfile() {
               </div>
               <div className="panel-body">
                 <div className="form-group">
-                  <label className="col-sm-2 control-label">Current password</label>
+                  <label htmlFor="curr_pw" className="col-sm-2 control-label">Current Password</label>
                   <div className="col-sm-10">
-                    <input type="password" className="form-control"/>
+                    <input
+                      className="form-control"
+                      type="password"
+                      {...register("curr_pw")}
+                    />
                   </div>
                 </div>
                 <div className="form-group">
-                  <label className="col-sm-2 control-label">New password</label>
+                  <label htmlFor="new_pw" className="col-sm-2 control-label">New Password</label>
                   <div className="col-sm-10">
-                    <input type="password" className="form-control"/>
+                    <input
+                      className="form-control"
+                      type="password"
+                      {...register("new_pw")}
+                    />
                   </div>
                 </div>
                 <div className="form-group">
