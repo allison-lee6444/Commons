@@ -6,6 +6,8 @@ from dotenv import load_dotenv
 
 verification_token = {}
 
+# methods here only tested visually because this relies on a web scraper
+
 
 async def start_verify(email):
     token = random.randint(100000, 999999)
