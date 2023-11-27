@@ -24,9 +24,17 @@ def get_msg_update(cur, chatroom_id, date_time):
 
 # Retrieve message functionality
 def retrieveMessages(cur, chatroom_id):
-    cur.execute("SELECT * FROM messages WHERE chatroom_id= %(chatroom_id)s", {"chatroom_id": chatroom_id})
-    result = json.dumps(cur.fetchall())
-    return result
+    try:
+        cur.execute("SELECT (sender_id, chatroom_id, message_text, cast(date_time_sent as text)) FROM message WHERE chatroom_id= %(chatroom_id)s",
+                     {"chatroom_id": chatroom_id})
+        result = json.dumps(cur.fetchall())
+        return result
+    except BaseException as e:
+        print(f'Exception: {e}')
+        raise HTTPException(
+            status_code=500,
+            detail="Database Error",
+        )
 
 
 # Save message functionality
@@ -47,19 +55,23 @@ def createChatroom(cur, user_id, chatroom_name, uni_id):
     try:
         # Generate invite id
         invite_id = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
-        cur.execute("INSERT INTO chatroom(chatroom_name, invite_id, uni_id) VALUES(%(chatroom_name)s, %(invite_id)s %(uni_id)s)", {"chatroom_name" : chatroom_name, "uni_id" : uni_id, "invite_id" : invite_id})
-
+        
+        cur.execute("INSERT INTO chatroom(chatroom_name, uni_id, invite_id) VALUES(%(chatroom_name)s, %(uni_id)s, %(invite_id)s)", {"chatroom_name" : chatroom_name, "uni_id" : uni_id, "invite_id" : invite_id})
+        
         cur.execute("SELECT id FROM chatroom where chatroom_name = %(chatroom_name)s   AND uni_id = %(uni_id)s", {"chatroom_name" : chatroom_name, "uni_id" : uni_id})
+        
         chatroom_id = cur.fetchall()[0][0]
+        
         cur.execute(
             "INSERT INTO in_chatroom(student_id, uni_id, chatroom_id) VALUES(%(user_id)s, %(uni_id)s, %(chatroom_id)s)",
             {"user_id": user_id, "uni_id": uni_id, "chatroom_id": chatroom_id})
+        
         return True
     except:
         return False
     
 #Generate invite link for student (for non-course chatroom)
-def GenerateInvite(target_user_id, chatroom_id):
+def GenerateInvite(cur, target_user_id, chatroom_id):
     invite_object = {}
     invite_object.update({"target_user" : target_user_id})
     cur.execute("SELECT invite_id FROM chatroom WHERE id = %(chatroom_id)s", {"chatroom_id" : chatroom_id})
