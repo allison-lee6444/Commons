@@ -83,26 +83,31 @@ def GenerateInvite(cur, target_user_id, chatroom_id):
 def AcceptInvite(cur, invite_object, target_user_id):
     try:
         invite = json.loads(invite_object)
+
         
         #check if target_user_id matches invite["target_user"]
         if (target_user_id != invite["target_user"]):
             return False
         
         invite_id = invite["invite_id"]
-
-        cur.execute("SELECT chatroom_id FROM chatroom WHERE invite_id = %(invite_id)s", {"invite_id" : invite_id})
+        
+        cur.execute("SELECT id FROM chatroom WHERE invite_id = %(invite_id)s", {"invite_id" : invite_id})
         chatroom_id = cur.fetchall()[0][0]
-
+        
         #do not allow insertion of user into in_chatroom if uni_id for target user and chatroom do not match
-        cur.execute("SELECT uni_id FROM chatroom WHERE chatroom_id = %(chatroom_id)s", {"chatroom_id" : chatroom_id})
+        cur.execute("SELECT uni_id FROM chatroom WHERE id = %(chatroom_id)s", {"chatroom_id" : chatroom_id})
         uni_id = cur.fetchall()[0][0]
         cur.execute("SELECT uni_id FROM student WHERE student_id = %(target_user_id)s", {"target_user_id" : target_user_id})
+    
         student_uni_id = cur.fetchall()[0][0]
+        
         if (student_uni_id != uni_id):
             return False
-
+        
         #insert target user into in_chatroom
         cur.execute("INSERT INTO in_chatroom(student_id, uni_id, chatroom_id) VALUES(%(target_user_id)s, %(uni_id)s, %(chatroom_id)s)",
                     {"target_user_id" : target_user_id, "uni_id" : uni_id, "chatroom_id" : chatroom_id})
+        
+        return True
     except:
         return False 

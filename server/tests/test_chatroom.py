@@ -134,6 +134,37 @@ def test_generate_invite(postgresql):
 
     assert(invite["invite_id"] == invite_id)
 
+def test_accept_invite(postgresql):
+    with open('database/create_tables.sql', 'r') as sqlfile:
+        cur = postgresql.cursor()
+        cur.execute(sqlfile.read())
+    cur = postgresql.cursor()
+
+    cur.execute("INSERT INTO student(email, password, salt, student_id, uni_id) VALUES('a', 'a', 'a', '123', 'NYU')")
+    cur.execute("INSERT INTO university values('NYU')")
+    chatroom_name = 'a'
+    #uni_id = 'NYU'
+    cur.execute("INSERT INTO chatroom(chatroom_name, uni_id, invite_id) VALUES('ping pong club', 'NYU', 'xYz123ABCD')")
+
+
+    #get chatroom id
+    cur.execute("SELECT invite_id FROM chatroom")
+    invite_id = cur.fetchall()[0][0]
+
+    cur.execute("SELECT student_id FROM student")
+    student_id = cur.fetchall()[0][0]
+
+    invite_object = {"invite_id" : invite_id, "target_user" : student_id}
+    invite_object = json.dumps(invite_object)
+    chatroom.AcceptInvite(cur, invite_object, student_id)
+
+    
+    #assert (res == True)
+
+    cur.execute("SELECT student_id FROM in_chatroom")
+    res = cur.fetchall()[0][0]
+    assert (res == student_id)
+
 def a():
     a = 1
     assert(a == 1)
