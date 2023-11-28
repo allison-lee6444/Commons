@@ -31,10 +31,11 @@ def test_create_chatroom(postgresql):
     cur.execute("SELECT invite_id FROM chatroom")
     print(cur.fetchall()[0][0])
     """
-    #chatroom_name = 'a'
-    cur.execute("SELECT invite_id FROM chatroom")
-    print(cur.fetchall()[0][0])
-    assert (invite_id != '')
+    
+    cur.execute("SELECT student_id FROM in_chatroom")
+    s_id = str(cur.fetchall()[0][0])
+
+    assert(s_id == user_id)
 
 def test_create_chatroom_func(postgresql):
     with open('database/create_tables.sql', 'r') as sqlfile:
