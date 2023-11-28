@@ -1,6 +1,7 @@
 from fastapi import HTTPException
+import requests
 
-def request_profile(email):
+def request_profile(cur,email):
     url = f"http://localhost:8008/getStudentProfile?email={email}"
     response = requests.get(url)
     if response.status_code == 200:

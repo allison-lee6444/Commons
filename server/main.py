@@ -7,7 +7,7 @@ import authentication
 import chatroom
 import events
 import profiles
-import import_schedules
+import schedule
 import verify_identity
 import flashcard
 from cursor import cur
@@ -182,10 +182,13 @@ def retrieveMessages(chatroom_id):
     return {"result": chatroom.retrieveMessages(cur, chatroom_id)}
 
 
-@app.post("/ImportStudentSchedule/")
-def importSchedule(values):
-    return {"result": import_schedules.ImportStudentSchedule(cur, values)}
+@app.post("/importStudentSchedule/")
+def importStudentSchedule(email):
+    return {"result": schedule.request_schedule(cur,email)}
 
+@app.post("/importStudentProfile")
+def importStudentProfile(email):
+    return {"result":profiles.request_profile(cur,email)}
 
 @app.post("/verifyIdentity/")
 def verifyIdentity(student_id, uni_id, email, fname, lname, graduation_year):

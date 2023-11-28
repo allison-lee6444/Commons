@@ -1,16 +1,6 @@
 import requests
-from cursor import cur
 
-# <<< [TEST - DELETE AFTER TEST] >>> #
-# Fake Server Communication Test
-"""def testRequest():
-    url = f"http://localhost:8008/testRequest"
-    response = requests.get(url)
-    if response.status_code == 200:
-        return response.json()"""
-# <<< [TEST - DELETE AFTER TEST] >>> #
-
-def request_schedule(email):
+def request_schedule(cur,email):
     url = f"http://localhost:8008/getStudentSchedule?email={email}"
     response = requests.get(url)
     if response.status_code == 200:
