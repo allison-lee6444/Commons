@@ -1,7 +1,6 @@
 import bcrypt
 from fastapi import HTTPException
 
-
 def check_login(cur, email, password):
     # Check if we find a username and password that matches.
     try:
