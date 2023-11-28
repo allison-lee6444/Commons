@@ -37,7 +37,6 @@ def check_session_id(id):
 def login(email, password):
     result = authentication.check_login(cur, email, password)
     token = None
-    print(result)
     if result:
         token = secrets.token_urlsafe(20)
         sessions[token] = email
@@ -111,17 +110,6 @@ def getEmail(sessionid):
 def newMessages(chatroomID, dateTime):
     return chatroom.get_msg_update(cur, chatroomID, dateTime)
 
-@app.put("/saveMessage/")
-def saveMessage(sender_id, chatroomID, message_sent):
-    return {"result" : chatroom.saveMessage(sender_id, chatroomID, message_sent)}
-
-@app.get("/retrieveMessages/")
-def retrieveMessages(chatroom_id):
-    return {"result" : chatroom.retrieveMessages(chatroom_id)}
-
-@app.get("/retrieveChatrooms")
-def retrieveChatrooms(student_id):
-    return chatroom.getChatrooms(student_id)
 
 # Method to create a new event and save it in the DB.
 @app.post("/editEvent/")
@@ -183,65 +171,11 @@ def getCourses(sessionid):
 def hasConflict(startTime, endTime, studentID):
     return {"result": events.has_conflict(cur, startTime, endTime, studentID)}
 
-# Method called to verify if a email is a university email.
-@app.get("/universityEmailVerification")
-def universityEmailVerification(email):
-    return identity.verify_uni_email(email)
-
-# Method called to get a student's verification status.
-@app.get("/getVerificationStatus/")
-def getVerificationStatus(email):
-    return identity.retrieve_verification_status(email)
-
-# Method called to import a student's schedule directly from the university.
-@app.get("/importStudentSchedule/")
-def importStudentSchedule(email):
-    return {"success":schedule.request_schedule(email)}
-
-# Method called to import a student's profile directly from the university.
-@app.get("/importStudentProfile/")
-def importStudentSchedule(email):
-    return {"success":profiles.request_profile(email)}
-
-# Test function to send random data.
-@app.get("/test/")
-def test(data):
-    print(data)
-    if int(data) % 2 == 0:
-        return {"result":True}
-    return {"result":False}
 
 @app.put("/saveMessage/")
 def saveMessage(sender_id, chatroomID, message_sent):
     return {"result": chatroom.saveMessage(cur, sender_id, chatroomID, message_sent)}
 
-# Method called to verify if a email is a university email.
-@app.get("/universityEmailVerification")
-def universityEmailVerification(email):
-    return identity.verify_uni_email(email)
-
-# Method called to get a student's verification status.
-@app.get("/getVerificationStatus/")
-def getVerificationStatus(email):
-    return identity.retrieve_verification_status(email)
-
-# Method called to import a student's schedule directly from the university.
-@app.get("/importStudentSchedule/")
-def importStudentSchedule(email):
-    return {"success":schedule.request_schedule(email)}
-
-# Method called to import a student's profile directly from the university.
-@app.get("/importStudentProfile/")
-def importStudentSchedule(email):
-    return {"success":profiles.request_profile(email)}
-
-# Test function to send random data.
-@app.get("/test/")
-def test(data):
-    print(data)
-    if int(data) % 2 == 0:
-        return {"result":True}
-    return {"result":False}
 
 @app.get("/retrieveMessages/")
 def retrieveMessages(chatroom_id):
