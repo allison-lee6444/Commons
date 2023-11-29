@@ -205,3 +205,20 @@ def deleteFlashcard(chatroom_id, front_text, back_text):
 @app.get("/getFlashcards/")
 def getAllFlashcards(chatroom_id):
     return {"result": flashcard.getFlashcards(cur, chatroom_id)}
+
+@app.get("/generateInvite")
+def generateInviteForStudent(target_user_id, chatroom_id):
+    return {"result": chatroom.GenerateInvite(cur, target_user_id, chatroom_id)}
+
+@app.post("/acceptInvite")
+def acceptInvite(invite_object, target_user_id):
+    return {"result":chatroom.AcceptInvite(cur, invite_object, target_user_id)}
+
+@app.put("/createChatroom")
+def createChatroom(user_id, chatroom_name, uni_id):
+    return {"result" : chatroom.createChatroom(cur, user_id, chatroom_name, uni_id)}
+
+@app.get("/getChatroomsForStudent")
+def getChatroomsForStudent(student_id):
+    return {"result" : chatroom.getChatroomsForStudent(cur, student_id)}
+

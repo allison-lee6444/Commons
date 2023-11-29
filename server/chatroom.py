@@ -46,8 +46,12 @@ def saveMessage(cur, sender_id, chatroomID, message_sent):
             {"sender_id": sender_id, "chatroomID": chatroomID, "message_sent": message_sent,
              "date_time_sent": date_time_sent})
         return True
-    except:
-        return False
+    except BaseException as e:
+        print(f'Exception: {e}')
+        raise HTTPException(
+            status_code=500,
+            detail="Database Error",
+        )
 
 
 # Create non-course chatroom
@@ -67,17 +71,28 @@ def createChatroom(cur, user_id, chatroom_name, uni_id):
             {"user_id": user_id, "uni_id": uni_id, "chatroom_id": chatroom_id})
         
         return True
-    except:
-        return False
+    except BaseException as e:
+        print(f'Exception: {e}')
+        raise HTTPException(
+            status_code=500,
+            detail="Database Error",
+        )
     
 #Generate invite link for student (for non-course chatroom)
 def GenerateInvite(cur, target_user_id, chatroom_id):
-    invite_object = {}
-    invite_object.update({"target_user" : target_user_id})
-    cur.execute("SELECT invite_id FROM chatroom WHERE id = %(chatroom_id)s", {"chatroom_id" : chatroom_id})
-    invite_id = cur.fetchall()[0][0]
-    invite_object.update({"invite_id" : invite_id})
-    return json.dumps(invite_object)
+    try:
+        invite_object = {}
+        invite_object.update({"target_user" : target_user_id})
+        cur.execute("SELECT invite_id FROM chatroom WHERE id = %(chatroom_id)s", {"chatroom_id" : chatroom_id})
+        invite_id = cur.fetchall()[0][0]
+        invite_object.update({"invite_id" : invite_id})
+        return json.dumps(invite_object)
+    except BaseException as e:
+        print(f'Exception: {e}')
+        raise HTTPException(
+            status_code=500,
+            detail="Database Error",
+        )
 
 #Accept an invite and join a (non-course) chatroom
 def AcceptInvite(cur, invite_object, target_user_id):
@@ -109,5 +124,26 @@ def AcceptInvite(cur, invite_object, target_user_id):
                     {"target_user_id" : target_user_id, "uni_id" : uni_id, "chatroom_id" : chatroom_id})
         
         return True
-    except:
-        return False 
+    except BaseException as e:
+        print(f'Exception: {e}')
+        raise HTTPException(
+            status_code=500,
+            detail="Database Error",
+        )
+
+# Get the list of chatrooms that a student is in (for visibility of chatrooms functionality)
+def getChatroomsForStudent(cur, student_id):
+    try:
+        cur.execute("SELECT chatroom_name FROM (in_chatroom JOIN chatroom ON chatroom_id = id) WHERE student_id = %(student_id)s",
+                     {"student_id" : student_id})
+        #cur.execute("SELECT chatroom_name FROM chatroom")
+        res = cur.fetchall()
+        chatroom_names = [x[0] for x in res]
+        chatrooms = {"chatrooms" : chatroom_names}
+        return(json.dumps(chatrooms))
+    except BaseException as e:
+        print(f'Exception: {e}')
+        raise HTTPException(
+            status_code=500,
+            detail="Database Error",
+        )

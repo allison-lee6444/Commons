@@ -1,4 +1,6 @@
 // credit : https://codingartistweb.com/2022/08/flashcard-app-with-javascript/
+"use client"
+import React, {useState} from 'react';
 
 const container = document.querySelector(".container");
 const addQuestionCard = document.getElementById("add-question-card");
@@ -122,4 +124,6 @@ const disableButtons = (value) => {
   Array.from(editButtons).forEach((element) => {
     element.disabled = value;
   });
+
+
 };

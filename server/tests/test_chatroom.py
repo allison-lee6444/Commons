@@ -165,6 +165,41 @@ def test_accept_invite(postgresql):
     res = cur.fetchall()[0][0]
     assert (res == student_id)
 
+def test_get_chatrooms(postgresql):
+    with open('database/create_tables.sql', 'r') as sqlfile:
+        cur = postgresql.cursor()
+        cur.execute(sqlfile.read())
+    with open('database/triggers.sql', 'r') as triggers:
+        cur = postgresql.cursor()
+        cur.execute(triggers.read())
+    cur = postgresql.cursor()
+    cur.execute("INSERT INTO student(email, password, salt, student_id, uni_id) VALUES('a', 'a', 'a', '123', 'NYU')")
+    cur.execute("INSERT INTO university values('NYU')")
+
+    cur.execute("INSERT INTO course VALUES('CS101', 'NYU')") #chatroom is automatically created via trigger
+    cur.execute("INSERT INTO section(course_id, uni_id, section_id) VALUES('CS101', 'NYU', 'B')")
+    cur.execute("INSERT INTO takes(student_id, uni_id, course_id, section_id) VALUES('123', 'NYU', 'CS101', 'B')")
+
+    #student is automatically placed in the chatroom for the CS101 course (via trigger)
+    
+    ch_name = 'softball team'
+    cur.execute("INSERT INTO chatroom(chatroom_name, uni_id) VALUES(%(ch_name)s, 'NYU')", {"ch_name" : ch_name})
+    cur.execute("SELECT id FROM chatroom WHERE chatroom_name = %(ch_name)s", {"ch_name" : ch_name})
+    ch_id = cur.fetchall()[0][0]
+    
+    cur.execute("INSERT INTO in_chatroom(student_id, uni_id, chatroom_id) VALUES('123', 'NYU', %(ch_id)s)", {"ch_id" : ch_id})
+
+    cur.execute("SELECT chatroom_id FROM in_chatroom")
+    selection = cur.fetchall()
+    flattened = [x[0] for x in selection]
+    #assert(flattened == [1, 2])
+    
+    chatrooms_json = chatroom.getChatroomsForStudent(cur, '123')
+    chatrooms = json.loads(chatrooms_json)
+    assert(chatrooms["chatrooms"] == ["CS101", ch_name])
+
+    
+
 def a():
     a = 1
     assert(a == 1)
