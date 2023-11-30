@@ -68,3 +68,4 @@ node_modules/
 static/
 cache/
 /ui/.next/
+server/tests/__pycache__
