@@ -6,3 +6,6 @@ postgresql_proc = factories.postgresql_proc(
     load=["database/create_tables.sql"],
 )
 postgresql = factories.postgresql("postgresql_proc")
+
+def request_schedule(postgresql):
+    pass

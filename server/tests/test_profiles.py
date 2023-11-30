@@ -8,6 +8,8 @@ postgresql_proc = factories.postgresql_proc(
 )
 postgresql = factories.postgresql("postgresql_proc")
 
+def test_request_profile(postgresql):
+    pass
 
 def test_get_student_id(postgresql):
     cur = postgresql.cursor()
