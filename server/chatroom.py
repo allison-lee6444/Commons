@@ -23,7 +23,7 @@ def get_msg_update(cur, chatroom_id, date_time):
 
 
 # Retrieve message functionality
-def retrieveMessages(cur, chatroom_id):
+def retrieve_messages(cur, chatroom_id):
     try:
         cur.execute("SELECT (sender_id, chatroom_id, message_text, cast(date_time_sent as text)) FROM message WHERE chatroom_id= %(chatroom_id)s",
                      {"chatroom_id": chatroom_id})
@@ -38,7 +38,7 @@ def retrieveMessages(cur, chatroom_id):
 
 
 # Save message functionality
-def saveMessage(cur, sender_id, chatroomID, message_sent):
+def save_message(cur, sender_id, chatroomID, message_sent):
     try:
         date_time_sent = datetime.datetime.now()
         cur.execute(
@@ -55,7 +55,7 @@ def saveMessage(cur, sender_id, chatroomID, message_sent):
 
 
 # Create non-course chatroom
-def createChatroom(cur, user_id, chatroom_name, uni_id):
+def create_chatroom(cur, user_id, chatroom_name, uni_id):
     try:
         # Generate invite id
         invite_id = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
@@ -79,13 +79,13 @@ def createChatroom(cur, user_id, chatroom_name, uni_id):
         )
     
 #Generate invite link for student (for non-course chatroom)
-def GenerateInvite(cur, target_user_id, chatroom_id):
+def generate_invite(cur, target_user_id, chatroom_id):
     try:
         invite_object = {}
-        invite_object.update({"target_user" : target_user_id})
+        invite_object["target_user"] = target_user_id
         cur.execute("SELECT invite_id FROM chatroom WHERE id = %(chatroom_id)s", {"chatroom_id" : chatroom_id})
         invite_id = cur.fetchall()[0][0]
-        invite_object.update({"invite_id" : invite_id})
+        invite_object["invite_id"] = invite_id
         return json.dumps(invite_object)
     except BaseException as e:
         print(f'Exception: {e}')
@@ -95,7 +95,7 @@ def GenerateInvite(cur, target_user_id, chatroom_id):
         )
 
 #Accept an invite and join a (non-course) chatroom
-def AcceptInvite(cur, invite_object, target_user_id):
+def accept_invite(cur, invite_object, target_user_id):
     try:
         invite = json.loads(invite_object)
 
@@ -132,7 +132,7 @@ def AcceptInvite(cur, invite_object, target_user_id):
         )
 
 # Get the list of chatrooms that a student is in (for visibility of chatrooms functionality)
-def getChatroomsForStudent(cur, student_id):
+def get_chatrooms_for_student(cur, student_id):
     try:
         cur.execute("SELECT chatroom_name FROM (in_chatroom JOIN chatroom ON chatroom_id = id) WHERE student_id = %(student_id)s",
                      {"student_id" : student_id})
