@@ -32,3 +32,14 @@ def getFlashcards(cur, chatroom_id):
             status_code=500,
             detail="Database Error",
         )
+    
+def editFlashcard(cur, flashcard_id, new_front, new_back):
+    try:
+        cur.execute("UPDATE flashcard SET front = %(new_front)s, back = %(new_back)s WHERE id = %(flashcard_id)s", 
+                    {"new_front" : new_front, "new_back" : new_back, "flashcard_id" : flashcard_id})
+    except BaseException as e:
+        print(f'Exception: {e}')
+        raise HTTPException(
+            status_code=500,
+            detail="Database Error",
+        )   

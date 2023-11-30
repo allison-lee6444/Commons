@@ -174,12 +174,12 @@ def hasConflict(startTime, endTime, studentID):
 
 @app.put("/saveMessage/")
 def saveMessage(sender_id, chatroomID, message_sent):
-    return {"result": chatroom.saveMessage(cur, sender_id, chatroomID, message_sent)}
+    return {"result": chatroom.save_message(cur, sender_id, chatroomID, message_sent)}
 
 
 @app.get("/retrieveMessages/")
 def retrieveMessages(chatroom_id):
-    return {"result": chatroom.retrieveMessages(cur, chatroom_id)}
+    return {"result": chatroom.retrieve_messages(cur, chatroom_id)}
 
 
 @app.post("/ImportStudentSchedule/")
@@ -205,3 +205,20 @@ def deleteFlashcard(chatroom_id, front_text, back_text):
 @app.get("/getFlashcards/")
 def getAllFlashcards(chatroom_id):
     return {"result": flashcard.getFlashcards(cur, chatroom_id)}
+
+@app.get("/generateInvite")
+def generateInviteForStudent(target_user_id, chatroom_id):
+    return {"result": chatroom.generate_invite(cur, target_user_id, chatroom_id)}
+
+@app.post("/acceptInvite")
+def acceptInvite(invite_object, target_user_id):
+    return {"result":chatroom.accept_invite(cur, invite_object, target_user_id)}
+
+@app.put("/createChatroom")
+def createChatroom(user_id, chatroom_name, uni_id):
+    return {"result" : chatroom.create_chatroom(cur, user_id, chatroom_name, uni_id)}
+
+@app.get("/getChatroomsForStudent")
+def getChatroomsForStudent(student_id):
+    return {"result" : chatroom.get_chatrooms_for_student(cur, student_id)}
+
