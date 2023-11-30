@@ -315,8 +315,6 @@ function EditProfile() {
                     <button type="button" className='btn btn-primary' onClick={handleVerify}>Request Code</button>
                   </div>
                 </div>
-                {renderErrorMessage("server")}
-                {renderErrorMessage("password")}
             </div>   
             {/* My attempt. */}
 

@@ -1,7 +1,6 @@
 import requests
-from cursor import cur
 
-def verify_uni_email(email):
+def verify_uni_email(cur,email):
     url = f"http://localhost:8008/verifyStudentEmail?email={email}"
     response = requests.get(url)
     if response.status_code == 200:
@@ -9,7 +8,7 @@ def verify_uni_email(email):
     else:
         return {"error":True}
     
-def retrieve_verification_status(email):
+def retrieve_verification_status(cur,email):
     cur.execute("SELECT * FROM student WHERE email=%(email)s AND student_id IS NOT NULL",{'email':email})
     result = cur.fetchall()
     if len(result) != 0:

@@ -18,6 +18,10 @@ Alternatively,
     cd server
     uvicorn main:app --host 127.0.0.1 --port 8060 --reload
 
+For the fake server:
+    cd university_server
+    uvicorn server:app --port 8008 --reload
+
 For UI, assuming a Linux environment:
 
     sudo apt install npm

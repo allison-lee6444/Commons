@@ -64,15 +64,19 @@ function Verify() {
                 const email_response = await fetch('http://127.0.0.1:8060/getEmail/?sessionid=' + sessionid);
                 let email_fetched = await email_response.json();
                 let email = email_fetched.result;
-                const schedule = await fetch('http://127.0.0.1:8060/importStudentSchedule/?email=' + email, {method: "GET"});
                 const profile = await fetch('http://127.0.0.1:8060/importStudentProfile/?email='+ email, {method: "GET"});
-                let scheduleData = await schedule.json();
                 let profileData = await profile.json();
-                if (scheduleData.success && profileData.success) { 
-                    window.location.replace('/profile/edit');
+                if (profileData.result) { 
+                    const schedule = await fetch('http://127.0.0.1:8060/importStudentSchedule/?email=' + email, {method: "GET"});
+                    let scheduleData = await schedule.json();
+                    if (scheduleData.result) {
+                        window.location.replace('/profile/edit');
+                    }
                 }
-            } 
-            setErrorMessages({name: "verify", message: "Something went wrong. Try re-entering the verification code."})
+            }
+            if (!data.result || profileData.result || scheduleData.result) {
+                setErrorMessages({name: "verify", message: "Something went wrong. Try re-entering the verification code."})
+            }
         } catch (error) {
             console.log(error);
         }
