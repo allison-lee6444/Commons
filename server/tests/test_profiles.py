@@ -3,18 +3,18 @@ from db import make_db
 from pytest_postgresql import factories
 
 postgresql_proc = factories.postgresql_proc(
-    load=["database/create_tables.sql",make_db]
+    load=["database/create_tables.sql"]
 )
 postgresql = factories.postgresql("postgresql_proc")
 
 def test_request_profile(postgresql):
     cur = postgresql.cursor()
-    make_db(postgresql)
+    make_db(cur)
     assert profiles.request_profile(cur,'abc123@nyu.edu') == True
 
 def test_get_student_id(postgresql):
     cur = postgresql.cursor()
-    make_db(postgresql)
+    make_db(cur)
     cur.execute(
         "INSERT INTO student (student_id, uni_id, email, password, salt) VALUES (123,'NYU','a@nyu.edu','p','s')"
     )
@@ -23,7 +23,7 @@ def test_get_student_id(postgresql):
 
 def test_get_profile(postgresql):
     cur = postgresql.cursor()
-    make_db(postgresql)
+    make_db(cur)
     cur.execute(
         "INSERT INTO student (student_id, uni_id, email, graduation_year, major, hobbies, interests, fname, lname,"
         "password, salt)"
@@ -36,7 +36,7 @@ def test_get_profile(postgresql):
 
 def test_edit_profile(postgresql):
     cur = postgresql.cursor()
-    make_db(postgresql)
+    make_db(cur)
     cur.execute(
         "INSERT INTO student (email, password, salt) VALUES ('a@nyu.edu','p','s')"
     )  # password and salt has not null constraint, must fill out first

@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS takes (
     section_id varchar(255) NOT NULL,
     uni_id varchar(255) NOT NULL,
     primary key(student_id, course_id, uni_id),
-    foreign key(course_id, section_id, uni_id) REFERENCES section(id, section_id, uni_id) ON DELETE CASCADE
+    foreign key(course_id, section_id, uni_id) REFERENCES section(course_id, section_id, uni_id) ON DELETE CASCADE
 );
 
 COMMIT;
