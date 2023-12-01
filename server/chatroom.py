@@ -7,7 +7,7 @@ def serialize_datetime(obj):
         return obj.isoformat()
 
 # Check if a specific chatroom has had any new messages since the provided time.
-def get_msg_update(cur, chatroom_id, date_time):
+def get_msg_update(cur,chatroom_id, date_time):
     try:
         cur.execute("SELECT * FROM message WHERE chatroom_id = %(chatroom_id)s and date_time_sent > %(date_time)s",
                     {"chatroom_id": chatroom_id, "date_time": date_time})
