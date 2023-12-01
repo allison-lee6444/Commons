@@ -83,6 +83,16 @@ def generate_invite(cur, target_user_id, chatroom_id):
     try:
         invite_object = {}
         invite_object["target_user"] = target_user_id
+        
+        #make sure that the chatroom is not a course chatroom
+        cur.execute("SELECT course_id FROM chatroom WHERE id = %(chatroom_id)s", {"chatroom_id" : chatroom_id})
+        c_id = cur.fetchall()[0][0]
+        if (c_id != None):
+            raise HTTPException(
+            status_code=500,
+            detail="Creating an invite for a course chatroom is not allowed",
+        )
+        
         cur.execute("SELECT invite_id FROM chatroom WHERE id = %(chatroom_id)s", {"chatroom_id" : chatroom_id})
         invite_id = cur.fetchall()[0][0]
         invite_object["invite_id"] = invite_id

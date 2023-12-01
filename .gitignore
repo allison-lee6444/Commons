@@ -70,3 +70,4 @@ cache/
 /ui/.next/
 server/tests/__pycache__
 server/protonmail/credit
+*.pyc
