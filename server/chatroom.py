@@ -1,7 +1,10 @@
 import json
 from fastapi import HTTPException
-from cursor import serialize_datetime
 import datetime
+
+def serialize_datetime(obj):
+    if isinstance(obj, datetime.datetime):
+        return obj.isoformat()
 
 # Check if a specific chatroom has had any new messages since the provided time.
 def get_msg_update(cur, chatroom_id, date_time):

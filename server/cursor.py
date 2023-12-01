@@ -14,7 +14,3 @@ password="commons_dev"
 
 # Create cursor to interact with the database.
 cur = conn.cursor()
-
-def serialize_datetime(obj): 
-    if isinstance(obj, datetime.datetime): 
-        return obj.isoformat() 

@@ -1,5 +1,4 @@
-def make_db(postgresql):
-    cur = postgresql.cursor()
+def make_db(cur):
     cur.execute("INSERT INTO student VALUES (123456,'NYU','abc123@nyu.edu',NULL,NULL,NULL,NULL,NULL,NULL,'thePass','theSalt');")
     cur.execute("INSERT INTO university VALUES ('NYU');")
     cur.execute("INSERT INTO course VALUES ('CS-UY 1234','NYU');")
