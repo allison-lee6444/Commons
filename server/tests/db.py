@@ -1,4 +1,5 @@
-def make_db(cur):
+def make_db(postgresql):
+    cur = postgresql.cursor()
     cur.execute("INSERT INTO student VALUES (123456,'NYU','abc123@nyu.edu',NULL,NULL,NULL,NULL,NULL,NULL,'thePass','theSalt');")
     cur.execute("INSERT INTO university VALUES ('NYU');")
     cur.execute("INSERT INTO course VALUES ('CS-UY 1234','NYU');")
@@ -10,5 +11,13 @@ def make_db(cur):
     cur.execute("INSERT INTO message VALUES (123456,1,'THIS IS A TEST MESSAGE!','2023-11-13 10:00:00');")
     cur.execute("INSERT INTO game VALUES ('THE NYU GAME');")
     cur.execute("INSERT INTO player VALUES ('THE NYU GAME',123456,1,100);")
-    cur.execute("INSERT INTO event VALUES ('Orientation',123456,'NYU',1,'Welcome!','370 Jay Street',POINT(123,456));")
-
+    cur.execute("INSERT INTO event VALUES ('Orientation',123456,'NYU',1,'Welcome!','370 Jay Street',POINT(1.0,1.0),'2023-12-01 08:00:00','2023-12-01 10:00:00');")
+    cur.execute("INSERT INTO student(student_id,uni_id,email,password,salt) VALUES(111111,'NYU','a@nyu.edu','A','SALT')")
+    cur.execute("INSERT INTO student(student_id,uni_id,email,password,salt) VALUES(222222,'NYU','b@nyu.edu','B','SALT')")
+    cur.execute("INSERT INTO student(student_id,uni_id,email,password,salt) VALUES(333333,'NYU','c@nyu.edu','C','SALT')")
+    cur.execute("INSERT INTO takes VALUES(111111,'NYU','CS-UY 1234','A')")
+    cur.execute("INSERT INTO takes VALUES(222222,'NYU','CS-UY 1234','A')")
+    cur.execute("INSERT INTO takes VALUES(333333,'NYU','CS-UY 1234','A')")
+    cur.execute("INSERT INTO in_chatroom VALUES (111111,'NYU','CS-UY 1234',1)")
+    cur.execute("INSERT INTO in_chatroom VALUES (222222,'NYU','CS-UY 1234',1)")
+    cur.execute("INSERT INTO in_chatroom VALUES (333333,'NYU','CS-UY 1234',1)")

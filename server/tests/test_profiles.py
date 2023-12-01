@@ -1,15 +1,15 @@
 from server import profiles
-
+from db import make_db
 from pytest_postgresql import factories
 
 postgresql_proc = factories.postgresql_proc(
-    load=["database/create_tables.sql"],
-    port=7000
+    load=["database/create_tables.sql",make_db]
 )
 postgresql = factories.postgresql("postgresql_proc")
 
 def test_request_profile(postgresql):
-    pass
+    cur = postgresql.cursor()
+    assert profiles.request_profile(cur,'abc123@nyu.edu') == True
 
 def test_get_student_id(postgresql):
     cur = postgresql.cursor()

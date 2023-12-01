@@ -137,7 +137,10 @@ def get_event(cur, event_id, chatroom_id, student_id, uni_id):
 def get_courses(cur, student_id, uni_id):
     try:
         cur.execute(
-            "SELECT * FROM takes LEFT JOIN section ON takes.uni_id = section.uni_id AND"
+            "SELECT takes.course_id,takes.section_id,section.start_time,section.end_time,"
+            "section.semStartDate,section.semEndDate,section.year,section.meetsMon,section.meetsTue,"
+            "section.meetsWed,section.meetsThu,section.meetsFri,section.meetsSat,section.meetsSun"
+            " FROM takes LEFT JOIN section ON takes.uni_id = section.uni_id AND"
             " takes.course_id = section.course_id AND takes.section_id = section.section_id WHERE "
             "takes.student_id = %(student_id)s AND takes.uni_id = %(uni_id)s",
             {'student_id': student_id, 'uni_id': uni_id})
