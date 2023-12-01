@@ -9,6 +9,7 @@ postgresql = factories.postgresql("postgresql_proc")
 
 def test_request_schedule(postgresql):
     cur = postgresql.cursor()
+    make_db(postgresql)
     cur.execute("DELETE FROM takes WHERE student_id=123456;")
     assert schedule.request_schedule(cur,'abc123@nyu.edu') == True
 
