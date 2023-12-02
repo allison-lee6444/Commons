@@ -315,7 +315,8 @@ function EditProfile() {
                     <button type="button" className='btn btn-primary' onClick={handleVerify}>Request Code</button>
                   </div>
                 </div>
-            </div>   
+              </div> 
+            </div> {/* - Added to fix display issue. */}
             {/* My attempt. */}
 
             <div className="panel panel-default">
@@ -354,7 +355,7 @@ function EditProfile() {
 
               </div>              
             </div>            
-          </div>
+          {/* </div> - Removed to fix display issue. */}
           </form>
         </div>
       </div>

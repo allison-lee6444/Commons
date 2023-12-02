@@ -22,8 +22,8 @@ def get_msg_update(cur,chatroom_id, date_time):
 
 # Retrieve message functionality
 def retrieveMessages(cur, chatroom_id):
-    cur.execute("SELECT * FROM messages WHERE chatroom_id= %(chatroom_id)s", {"chatroom_id": chatroom_id})
-    result = json.dumps(cur.fetchall())
+    cur.execute("SELECT * FROM message WHERE chatroom_id= %(chatroom_id)s", {"chatroom_id": chatroom_id})
+    result = json.dumps(cur.fetchall(),default=serialize_datetime)
     return result
 
 # Save message functionality
@@ -59,7 +59,7 @@ def createChatroom(cur, user_id, chatroom_name, uni_id):
 def getChatrooms(cur,student_id):
     try:
         cur.execute(
-            "SELECT chatroom.id,chatroom.chatroom_name FROM in_chatroom LEFT JOIN chatroom ON"
+            "SELECT chatroom.id,chatroom.chatroom_name FROM in_chatroom LEFT JOIN chatroom ON "
             "in_chatroom.chatroom_id = chatroom.id WHERE in_chatroom.student_id = %(student_id)s",{'student_id':student_id}
         )
         result = cur.fetchall()

@@ -94,7 +94,7 @@ function Verify() {
     return (
         <div className="container bootstrap snippets bootdeys">
       <div className="row">
-        <div className="col-xs-12 col-sm-9">
+        <div id="centerPage" className="col-xs-12 col-sm-9">
           <form className="form-horizontal" onSubmit={handleSubmit} onReset={handleReset}>
             {/* My attempt. */}
             <div className="panel panel-default">
