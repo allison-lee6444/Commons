@@ -1,9 +1,9 @@
-import json
+"""import json
 from cursor import cur
 from chatroom import *
 from events import *
 from identity import *
-from schedule import *
+from schedule import *"""
 
 """
 print("=== START: Test 3 ===")
@@ -12,7 +12,10 @@ print()
 print("=== END: Test 3 ===")
 """
 
-# 3 Test Students / Should fail for subsequent tests.
+def add(a,b):
+    return a+b
+
+"""# 3 Test Students / Should fail for subsequent tests.
 try:
     cur.execute("INSERT INTO student VALUES('a@nyu.edu','A','SALT')")
     cur.execute("INSERT INTO student VALUES('b@nyu.edu','B','SALT')")
@@ -212,6 +215,6 @@ print()
 print("Takes:")
 cur.execute("SELECT * FROM takes")
 print(cur.fetchall())
-print("=== END: Test 13 ===")
+print("=== END: Test 13 ===")"""
 
    

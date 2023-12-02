@@ -2,6 +2,10 @@ import json
 from fastapi import HTTPException
 import datetime
 
+def serialize_datetime(obj):
+    print(type(obj))
+    if isinstance(obj, (datetime.datetime,datetime.time,datetime.date)):
+        return obj.isoformat()
 
 # Create a new event.
 def editEvent(cur, chatroom_id, event_name, host_id, uni_id, description, loc_name, loc_coords, start_time, end_time):
@@ -91,16 +95,16 @@ def cancel_event(cur, host_id, event_id):
 def get_events(cur, student_id, uni_id):
     try:
         cur.execute(
-            "SELECT going_to_event.event_id,going_to_event.chatroom_id"
-            ",event.event_name,host.fname,host.lname,event.descript,event.location_name,"
+            "SELECT going_to_event.event_id,going_to_event.chatroom_id,"
+            "event.event_name,host.fname,host.lname,event.descript,event.location_name,"
             "event.start_time,event.end_time"
             " FROM going_to_event LEFT JOIN event ON going_to_event.event_id = event.event_id "
-            "JOIN student AS host ON event.host_id=student.student_id AND event.uni_id=student.uni_id"
-            "WHERE going_to_event.student_id = %(student_id)s AND going_to_event.uni_id = %(uni_id)s",
+            "JOIN student AS host ON event.host_id=host.student_id AND event.uni_id=host.uni_id "
+            "WHERE going_to_event.student_id = %(student_id)s",
             {'student_id': student_id, 'uni_id': uni_id}
         )
 
-        result = cur.fetchall()
+        result = json.dumps(cur.fetchall(),default=serialize_datetime)
         return result
     except BaseException as e:
         print(f'Exception: {e}')
@@ -114,17 +118,17 @@ def get_events(cur, student_id, uni_id):
 def get_event(cur, event_id, chatroom_id, student_id, uni_id):
     try:
         cur.execute(
-            "SELECT event_name, fname, lname, email, descript, location_name, location_coordinates, start_time, end_time"
-            "FROM event JOIN student ON event.host_id=student.student_id AND event.uni_id=student.uni_id JOIN"
-            "in_chatroom using (%(chatroom_id)s)"  # confirm authorization (non-participants
-            "WHERE event_id=%(event_id)s AND in_chatroom.student_id=%(student_id)s AND in_chatroom.uni_id=%(uni_id)s",
+            "SELECT event_name, fname, lname, email, descript, location_name, location_coordinates, start_time, end_time "
+            "FROM event JOIN student ON event.host_id=student.student_id AND event.uni_id=student.uni_id JOIN "
+            "in_chatroom USING(chatroom_id)"  # confirm authorization (non-participants
+            " WHERE event_id=%(event_id)s AND in_chatroom.student_id=%(student_id)s AND in_chatroom.uni_id=%(uni_id)s",
             {"event_id": event_id, "chatroom_id": chatroom_id, "student_id": student_id, "uni_id": uni_id}
         )
         result = cur.fetchall()
 
         if len(result) != 1:
             raise LookupError("Number of records does not equal 1")
-        return json.dumps(result)
+        return json.dumps(result,default=serialize_datetime)
     except BaseException as e:
         print(f'Exception: {e}')
         raise HTTPException(
@@ -137,15 +141,15 @@ def get_event(cur, event_id, chatroom_id, student_id, uni_id):
 def get_courses(cur, student_id, uni_id):
     try:
         cur.execute(
-            "SELECT takes.course_id,takes.section_id,section.start_time,section.end_time,"
+            "SELECT section.course_id,section.section_id,section.start_time,section.end_time,"
             "section.semStartDate,section.semEndDate,section.year,section.meetsMon,section.meetsTue,"
             "section.meetsWed,section.meetsThu,section.meetsFri,section.meetsSat,section.meetsSun"
             " FROM takes LEFT JOIN section ON takes.uni_id = section.uni_id AND"
             " takes.course_id = section.course_id AND takes.section_id = section.section_id WHERE "
             "takes.student_id = %(student_id)s AND takes.uni_id = %(uni_id)s",
             {'student_id': student_id, 'uni_id': uni_id})
-        result = cur.fetchall()
-        return json.dumps(result)
+        result = json.dumps(cur.fetchall(),default=serialize_datetime)
+        return result
     except BaseException as e:
         print(f'Exception: {e}')
         raise HTTPException(
@@ -168,20 +172,22 @@ def get_courses_meeting_on_same_day(cur, student_id, event_time):
     # semester.
     # <<< [TEST - UNCOMMENT AFTER TEST] >>>
     try:
-        """cur.execute(
+        week_meet_day = 'section.meets'+event_time.strftime('%A')[:3]
+        """
+        cur.execute(
             f"SELECT section.start_time,section.end_time"
             f" FROM takes LEFT JOIN section ON takes.uni_id = section.uni_id"
             f" AND takes.course_id = section.course_id AND takes.section_id = section.section_id WHERE "
-            f"takes.student_id = {student_id} AND section.{day_to_col[day_of_week]} = 'True' AND section.semStartDate < "
+            f"takes.student_id = {student_id} AND section.{week_meet_day} = 'True' AND section.semStartDate < "
             f"'{date}' AND section.semEndDate > '{date}'"
-        )""" 
-        week_meet_day = 'meets'+event_time.strftime('%A')[:3]
+        )
+        """
         cur.execute(
-            "SELECT section.start_time,section.end_time FROM takes LEFT JOIN section ON takes.uni_id = section.uni_id AND "
-            "takes.course_id = section.course_id AND takes.section_id = section.section_id"
-            " WHERE takes.student_id = %(studentID)s AND section.%(day_col)s is true "
-            "AND section.semStartDate < %(date)s AND section.semEndDate > %(date)s",
-            {'studentID': student_id, 'day_col': week_meet_day, 'date': date}
+            f"SELECT section.start_time,section.end_time FROM takes LEFT JOIN section ON takes.uni_id = section.uni_id AND "
+            f"takes.course_id = section.course_id AND takes.section_id = section.section_id"
+            f" WHERE takes.student_id = %(studentID)s AND {week_meet_day} = true "
+            f"AND section.semStartDate < %(date)s AND section.semEndDate > %(date)s",
+            {'studentID': student_id, 'date': date}
         )
     except BaseException as e:
         print(f'Exception: {e}')
@@ -240,12 +246,12 @@ def has_conflict(cur, start_time, end_time, student_id):
 
     # > Get all courses the student is in as a list of tuples of type (CourseStartEpoch,CourseEndEpoch).
     course_result = []
-    course_result.extend(get_courses_meeting_on_same_day(student_id, event_start_date_time))
+    course_result.extend(get_courses_meeting_on_same_day(cur,student_id, event_start_date_time))
     # If the event is on different dates ...
     event_start_date = event_start_date_time.strftime('%Y-%m-%d')
     event_end_date = event_end_date_time.strftime('%Y-%m-%d')
     if event_start_date != event_end_date:
-        course_result.extend(get_courses_meeting_on_same_day(student_id, event_end_date_time))
+        course_result.extend(get_courses_meeting_on_same_day(cur,student_id, event_end_date_time))
 
     # > Go through the scheduled events/courses on the same days as the event and see if a conflict exists.
     schedule = event_result + course_result
