@@ -1,4 +1,8 @@
 # Verify a student's identity through their university institution
+
+# AL: how??? arent we just blindly accepting inputs? are there plans to use the verification functions i have written
+# verification.py??
+
 def verifyIdentity(cur, student_id, uni_id, email, fname, lname, graduation_year):
     cur.execute("SELECT * FROM attends WHERE student_id=%(student_id)s and uni_id=%(uni_id)s and email=%(email)s",
                 {"student_id": student_id, "uni_id": uni_id, "email": email})

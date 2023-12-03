@@ -32,5 +32,8 @@ platformdirs~=2.5.1
 wsproto~=1.2.0
 PyVirtualDisplay~=3.0
 python-dotenv~=1.0.0
-pytest
+pytest~=7.4.2
 pytest-postgresql
+click~=8.0.3
+requests~=2.25.1
+protonmail~=0.0.6
