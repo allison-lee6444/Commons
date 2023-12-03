@@ -1,15 +1,17 @@
 import json
-
 from fastapi import HTTPException
 import datetime
 
+def serialize_datetime(obj):
+    if isinstance(obj, datetime.datetime):
+        return obj.isoformat()
 
 # Check if a specific chatroom has had any new messages since the provided time.
-def get_msg_update(cur, chatroom_id, date_time):
+def get_msg_update(cur,chatroom_id, date_time):
     try:
         cur.execute("SELECT * FROM message WHERE chatroom_id = %(chatroom_id)s and date_time_sent > %(date_time)s",
                     {"chatroom_id": chatroom_id, "date_time": date_time})
-        result = json.dumps(cur.fetchall())
+        result = json.dumps(cur.fetchall(),default=serialize_datetime)
         return result
     except BaseException as e:
         print(f'Exception: {e}')
@@ -18,13 +20,11 @@ def get_msg_update(cur, chatroom_id, date_time):
             detail="Database Error",
         )
 
-
 # Retrieve message functionality
 def retrieveMessages(cur, chatroom_id):
-    cur.execute("SELECT * FROM messages WHERE chatroom_id= %(chatroom_id)s", {"chatroom_id": chatroom_id})
-    result = json.dumps(cur.fetchall())
+    cur.execute("SELECT * FROM message WHERE chatroom_id= %(chatroom_id)s", {"chatroom_id": chatroom_id})
+    result = json.dumps(cur.fetchall(),default=serialize_datetime)
     return result
-
 
 # Save message functionality
 def saveMessage(cur, sender_id, chatroomID, message_sent):
@@ -37,7 +37,6 @@ def saveMessage(cur, sender_id, chatroomID, message_sent):
         return True
     except:
         return False
-
 
 # Create non-course chatroom
 def createChatroom(cur, user_id, chatroom_name, uni_id):
@@ -53,3 +52,21 @@ def createChatroom(cur, user_id, chatroom_name, uni_id):
         return True
     except:
         return False
+    
+# Retrieve all of the chatrooms a student is in.
+# WARNING: DOES NOT WORK CURRENTLY AS THERE IS NO WAY TO STORE CHATROOM NAME IN THE DATABASE.  TEST ONLY
+# WHEN THIS IS FIXED.
+def getChatrooms(cur,student_id):
+    try:
+        cur.execute(
+            "SELECT chatroom.id,chatroom.chatroom_name FROM in_chatroom LEFT JOIN chatroom ON "
+            "in_chatroom.chatroom_id = chatroom.id WHERE in_chatroom.student_id = %(student_id)s",{'student_id':student_id}
+        )
+        result = cur.fetchall()
+        return {"chatrooms":result}
+    except BaseException as e:
+        print(f'Exception: {e}')
+        raise HTTPException(
+            status_code=500,
+            detail="Database Error",
+        )

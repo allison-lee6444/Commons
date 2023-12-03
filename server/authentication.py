@@ -1,7 +1,6 @@
 import bcrypt
 from fastapi import HTTPException
 
-
 def check_login(cur, email, password):
     # Check if we find a username and password that matches.
     try:
@@ -17,6 +16,7 @@ def check_login(cur, email, password):
         return False
 
     # Should only have 1 account
+    print(result)
     if len(result) == 1:
         return True
     return False
@@ -37,7 +37,8 @@ def register_account(cur, email, password):
     try:
         cur.execute("INSERT INTO student (email, password, salt) VALUES (%(email)s,%(hashed_password)s,%(salt)s)",
                     {'email': email, 'hashed_password': hashed_password, 'salt': salt})
-        cur.execute("SELECT * FROM student WHERE email=%(email)s", {'email': email})
+        cur.execute("SELECT * FROM Student WHERE email=%(email)s", {'email': email})
+        cur.execute("COMMIT")
 
     except BaseException as e:
         print(f'Exception: {e}')
