@@ -7,9 +7,8 @@ import authentication
 import chatroom
 import events
 import profiles
-import schedule
+import request_uni
 import verify_identity
-import identity
 import flashcard
 from cursor import cur
 
@@ -182,13 +181,16 @@ def saveMessage(sender_id, chatroomID, message_sent):
 def retrieveMessages(chatroom_id):
     return {"result": chatroom.retrieveMessages(cur, chatroom_id)}
 
+
 @app.get("/importStudentSchedule/")
 def importStudentSchedule(email):
-    return {"result": schedule.request_schedule(cur,email)}
+    return {"result": request_uni.request_schedule(cur, email)}
+
 
 @app.get("/importStudentProfile/")
 def importStudentProfile(email):
-    return {"result":profiles.request_profile(cur,email)}
+    return {"result": request_uni.request_profile(cur, email)}
+
 
 @app.post("/verifyIdentity/")
 def verifyIdentity(student_id, uni_id, email, fname, lname, graduation_year):
@@ -209,15 +211,17 @@ def deleteFlashcard(chatroom_id, front_text, back_text):
 def getAllFlashcards(chatroom_id):
     return {"result": flashcard.getFlashcards(cur, chatroom_id)}
 
+
 # Method called to get a student's verification status.
 @app.get("/getVerificationStatus/")
 def getVerificationStatus(email):
-    return identity.retrieve_verification_status(cur,email)
+    return profiles.is_verified(cur, email)
+
 
 # Test function to send random data.
 @app.get("/test/")
 def test(data):
     print(data)
     if int(data) % 2 == 0:
-        return {"result":True}
-    return {"result":False}
+        return {"result": True}
+    return {"result": False}
