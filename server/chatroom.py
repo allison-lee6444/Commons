@@ -144,12 +144,17 @@ def accept_invite(cur, invite_object, target_user_id):
 # Get the list of chatrooms that a student is in (for visibility of chatrooms functionality)
 def get_chatrooms_for_student(cur, student_id):
     try:
+        """
         cur.execute("SELECT chatroom_name FROM (in_chatroom JOIN chatroom ON chatroom_id = id) WHERE student_id = %(student_id)s",
+                     {"student_id" : student_id})
+        """
+        cur.execute("SELECT (chatroom_name, chatroom.id) FROM (in_chatroom JOIN chatroom ON chatroom_id = id) WHERE student_id = %(student_id)s",
                      {"student_id" : student_id})
         #cur.execute("SELECT chatroom_name FROM chatroom")
         res = cur.fetchall()
-        chatroom_names = [x[0] for x in res]
-        chatrooms = {"chatrooms" : chatroom_names}
+        chatroom_names = [x[0][0] for x in res]
+        chatroom_ids = [x[0][1] for x in res]
+        chatrooms = {"chatroom_names" : chatroom_names, "chatroom_ids" : chatroom_ids}
         return(json.dumps(chatrooms))
     except BaseException as e:
         print(f'Exception: {e}')

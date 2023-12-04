@@ -149,7 +149,8 @@ def test_get_chatrooms(postgresql):
     
     chatrooms_json = chatroom.get_chatrooms_for_student(cur, '123')
     chatrooms = json.loads(chatrooms_json)
-    assert(chatrooms["chatrooms"] == ["CS101", ch_name])
+    assert(chatrooms["chatroom_names"] == ["CS101", ch_name])
+    assert(chatrooms["chatroom_ids"] == [str(x) for x in flattened])
 
     
 
