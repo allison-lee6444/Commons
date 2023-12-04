@@ -39,9 +39,70 @@ def request_schedule(cur, email):
                 result = cur.fetchall()
                 if len(result) == 0:
                     # Order is different in tables.
-                    value = (row[0], row[3], row[1], row[2])
-                    cur.execute("INSERT INTO takes VALUES %(value)s", {'value': value})
+                    cur.execute("INSERT INTO takes VALUES (%(student_id)s, %(uni_id)s, %(course_id)s, %(session_id)s)",
+                                {'student_id': row[0], 'uni_id': row[3], 'course_id': row[1], 'session_id': row[2]})
             cur.execute("COMMIT")
+        except Exception as e:
+            print(e)
+            return False
+
+        return True
+    else:
+        return False
+
+
+def request_courses_sections(cur):
+    url = f"http://localhost:8008/getCoursesSections"
+    response = requests.get(url)
+    if response.status_code == 200:
+        data = response.json()
+        section_data = data["section"]
+        course_data = data["course"]
+
+        try:
+            for row in course_data:
+                # Make sure this course isn't already in courses.
+                cur.execute("SELECT * FROM course WHERE id=%(course)s AND uni_id=%(uni_id)s",
+                            {'course': row[0], 'uni_id': row[1]})
+                result = cur.fetchall()
+                if len(result) == 0:
+                    # Order is different in tables.
+                    cur.execute("INSERT INTO course VALUES (%(course)s, %(uni_id)s)",
+                                {'course': row[0], 'uni_id': row[1]})
+                    print(f'course inserted {row[0]}')
+            cur.execute("COMMIT")
+
+            for row in section_data:
+                # Make sure this section isn't already in section.
+                cur.execute("SELECT * FROM section WHERE course_id=%(course)s AND uni_id=%(uni_id)s "
+                            "AND section_id=%(sec_id)s",
+                            {'course': row[0], 'uni_id': row[2], 'sec_id': row[1]})
+                result = cur.fetchall()
+                if len(result) == 0:
+                    # Order is different in tables.
+                    cur.execute("INSERT INTO section VALUES (%(course)s,%(uni_id)s,%(section_id)s,"
+                                "%(start_time)s, %(end_time)s, "
+                                "%(semStartDate)s, %(semEndDate)s, %(year)s,"
+                                "%(meetsMon)s, %(meetsTue)s,%(meetsWed)s,"
+                                "%(meetsThu)s,%(meetsFri)s,%(meetsSat)s"
+                                ",%(meetsSun)s)",
+                                {'course': row[0],
+                                 'uni_id': row[2],
+                                 'section_id': row[1],
+                                 'start_time': row[3],
+                                 'end_time': row[4],
+                                 'semStartDate': row[5],
+                                 'semEndDate': row[6],
+                                 'year': row[7],
+                                 'meetsMon': row[8],
+                                 'meetsTue': row[9],
+                                 'meetsWed': row[10],
+                                 'meetsThu': row[11],
+                                 'meetsFri': row[12],
+                                 'meetsSat': row[13],
+                                 'meetsSun': row[14]
+                                 })
+                    cur.execute("COMMIT")
         except Exception as e:
             print(e)
             return False

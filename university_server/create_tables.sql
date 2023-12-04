@@ -58,8 +58,10 @@ INSERT INTO student VALUES ('ddd@nyu.edu',666666,'NYU','John','Smith','Computer 
 INSERT INTO student VALUES ('allisonlee6444@gmail.com',555555,'NYU','Allison','Lee','Computer Science',2024);
 INSERT INTO course VALUES ('CS-UY 1234','NYU');
 INSERT INTO course VALUES ('CS-UY 9999','NYU');
-INSERT INTO section VALUES ('CS-UY 1234','A','NYU','08:00:00','10:00:00','2023-09-01','2023-12-31','2023',True,False,True,False,False,False,False);
-INSERT INTO section VALUES ('CS-UY 9999','A','NYU','10:00:00','12:00:00','2023-09-01','2023-12-31','2023',False,True,False,True,False,False,False);
+INSERT INTO section VALUES ('CS-UY 1234','NYU','A','08:00:00','10:00:00','2023-09-01','2023-12-31','2023',True,False,True,False,False,False,False);
+INSERT INTO section VALUES ('CS-UY 9999','NYU','A','10:00:00','12:00:00','2023-09-01','2023-12-31','2023',False,True,False,True,False,False,False);
 INSERT INTO takes VALUES (123456,'CS-UY 1234','A','NYU');
+INSERT INTO takes VALUES (555555,'CS-UY 1234','A','NYU');
+INSERT INTO takes VALUES (555555,'CS-UY 9999','A','NYU');
 
 COMMIT;

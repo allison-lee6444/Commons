@@ -169,8 +169,10 @@ def getCourses(sessionid):
 
 # Method called to help a student identify if joining an event will create a time conflict.
 @app.get("/hasConflict/")
-def hasConflict(startTime, endTime, studentID):
-    return {"result": events.has_conflict(cur, startTime, endTime, studentID)}
+def hasConflict(sessionid, startTime, endTime):
+    email = check_session_id(sessionid)
+    student_id, _ = profiles.get_student_uni_id(cur, email)
+    return {"result": events.has_conflict(cur, startTime, endTime, student_id)}
 
 
 @app.put("/saveMessage/")
@@ -233,7 +235,6 @@ def getAllFlashcards(chatroom_id):
 def getVerificationStatus(sessionid):
     email = check_session_id(sessionid)
     return profiles.is_verified(cur, email)
-
 
 # Test function to send random data.
 @app.get("/test/")

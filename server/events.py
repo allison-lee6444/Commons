@@ -173,15 +173,6 @@ def get_courses_meeting_on_same_day(cur, student_id, event_time):
     # <<< [TEST - UNCOMMENT AFTER TEST] >>>
     try:
         week_meet_day = 'section.meets'+event_time.strftime('%A')[:3]
-        """
-        cur.execute(
-            f"SELECT section.start_time,section.end_time"
-            f" FROM takes LEFT JOIN section ON takes.uni_id = section.uni_id"
-            f" AND takes.course_id = section.course_id AND takes.section_id = section.section_id WHERE "
-            f"takes.student_id = {student_id} AND section.{week_meet_day} = 'True' AND section.semStartDate < "
-            f"'{date}' AND section.semEndDate > '{date}'"
-        )
-        """
         cur.execute(
             f"SELECT section.start_time,section.end_time FROM takes LEFT JOIN section ON takes.uni_id = section.uni_id AND "
             f"takes.course_id = section.course_id AND takes.section_id = section.section_id"
@@ -212,7 +203,9 @@ def get_courses_meeting_on_same_day(cur, student_id, event_time):
 
 # For a given event's start/end times and a student, return True if the student has a time conflict.  False otherwise.
 def has_conflict(cur, start_time, end_time, student_id):
-    format = '%Y-%m-%d %H:%M:%S'
+    start_time = ''.join(start_time.split('GMT')[:-1])
+    end_time = ''.join(end_time.split('GMT')[:-1])
+    format = '%a %b %d %Y %H:%M:%S '
 
     # > Convert start/end time of event into DateTime obj.
     event_start_date_time = datetime.datetime.strptime(start_time, format)
@@ -237,7 +230,6 @@ def has_conflict(cur, start_time, end_time, student_id):
         )
     event_result = cur.fetchall()  # <<< [TEST - UNCOMMENT AFTER TEST] >>>
     # event_result = [("2023-11-03 07:00:00","2023-11-03 08:30:00"),("2023-11-03 15:00:00","2023-11-03 16:00:00"),("2023-11-04 10:00:00","2023-11-04 12:00:00")] # <<< [TEST - DELETE AFTER TEST] >>>
-
     # Go through event_result (ex: [(datetime_ob, datetime_obj), ...] and convert them into epoch values.
     for i in range(len(event_result)):
         new_start = (datetime.datetime.strptime(event_result[i][0].strftime(format), format)).timestamp()
@@ -247,6 +239,7 @@ def has_conflict(cur, start_time, end_time, student_id):
     # > Get all courses the student is in as a list of tuples of type (CourseStartEpoch,CourseEndEpoch).
     course_result = []
     course_result.extend(get_courses_meeting_on_same_day(cur,student_id, event_start_date_time))
+    print(course_result)
     # If the event is on different dates ...
     event_start_date = event_start_date_time.strftime('%Y-%m-%d')
     event_end_date = event_end_date_time.strftime('%Y-%m-%d')
