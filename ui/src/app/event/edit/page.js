@@ -25,7 +25,7 @@ function EditEvent() {
     description: ''
   });
 
-  let data, returned_values;
+  let data, returned_values, has_conflict;
   const [start_datetime, set_start] = useState(new Date());
   const [end_datetime, set_end] = useState(new Date());
 
@@ -59,6 +59,18 @@ function EditEvent() {
     set_event_info(new_event);
 
     // update event
+
+    const find_conflict = async () => {
+      try {
+        const conflict_response = await fetch(
+          'http://127.0.0.1:8060/hasConflict/?sessionid=' + sessionid + '&startTime=' +
+          encodeURIComponent(start_datetime) + '&endTime=' + encodeURIComponent(end_datetime), {method: "GET"}
+        );
+        has_conflict = await conflict_response.json();
+      } catch (error) {
+        setErrorMessages({name: "server", message: "Server Error: " + error})
+      }
+    }
     const postEventData = async () => {
       try {
         const response = await fetch(
@@ -74,11 +86,21 @@ function EditEvent() {
       }
     }
 
-    postEventData().then(() => {
-      console.log('post');
-      return;
-      window.location.replace('/event')
-    });
+    find_conflict().then(() => {
+      let continuing = true;
+      if (has_conflict.result) {
+        continuing = confirm("We have detected a conflict between this event to at least one of your classes or events. Do you" +
+          "wish to continue?") // TODO: when editing event, cannot show conflict within itself
+        if (!continuing){
+          return;
+        }
+      }
+      // postEventData().then(() => {
+      //   console.log('post');
+      //   return;
+      //   window.location.replace('/event')
+      // });
+    })
 
   };
 
