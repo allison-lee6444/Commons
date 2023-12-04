@@ -1,3 +1,4 @@
+import asyncio
 import secrets
 
 from fastapi import FastAPI, HTTPException
@@ -8,7 +9,7 @@ import chatroom
 import events
 import profiles
 import request_uni
-import verify_identity
+import verification
 import flashcard
 from cursor import cur
 
@@ -193,8 +194,23 @@ def importStudentProfile(email):
 
 
 @app.post("/verifyIdentity/")
-def verifyIdentity(student_id, uni_id, email, fname, lname, graduation_year):
-    return {"result": verify_identity.verifyIdentity(cur, student_id, uni_id, email, fname, lname, graduation_year)}
+def verifyIdentity(sessionid):
+    email = check_session_id(sessionid)
+    if getVerificationStatus(sessionid)['verified']:
+        return {'result': False}
+    return {"result": asyncio.run(verification.start_verify(email))}
+
+
+@app.get("/checkVerificationCode/")
+def checkVerificationCode(sessionid, token):
+    if getVerificationStatus(sessionid)['verified']:
+        return {'result': False}
+    email = check_session_id(sessionid)
+    is_verified = verification.check_token(email, token)
+    if is_verified:
+        request_uni.request_schedule(cur, email)
+        request_uni.request_profile(cur, email)
+    return {"result": is_verified}
 
 
 @app.post("/createFlashcard/")
@@ -214,7 +230,8 @@ def getAllFlashcards(chatroom_id):
 
 # Method called to get a student's verification status.
 @app.get("/getVerificationStatus/")
-def getVerificationStatus(email):
+def getVerificationStatus(sessionid):
+    email = check_session_id(sessionid)
     return profiles.is_verified(cur, email)
 
 

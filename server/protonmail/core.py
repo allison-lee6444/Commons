@@ -68,7 +68,6 @@ class ProtonmailClient:
                                                           variables.element_login['password_id'])
 
             utilities.wait_for_elem(self.web_driver, variables.element_login["username_id"])
-            username_input.click()
             username_input.send_keys(username)
             password_input.send_keys(password)
 
