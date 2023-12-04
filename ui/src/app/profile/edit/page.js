@@ -5,11 +5,13 @@ import './EditProfile.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import {useForm} from "react-hook-form"
 import {getCookie} from "@/app/utils"
-import { Dawning_of_a_New_Day } from 'next/font/google';
+import {Dawning_of_a_New_Day} from 'next/font/google';
+import colors from "tailwindcss/colors";
 
 function EditProfile() {
   const [errorMessages, setErrorMessages] = useState({});
   const [received_reply, set_received_reply] = useState(false);
+  const [verfication_status, set_verification_status] = useState(false);
   const [profile_info, set_profile_info] = useState({
     student_id: '',
     uni_id: '',
@@ -22,7 +24,7 @@ function EditProfile() {
     lname: ''
   });
 
-  let data, email_fetched, returned_values;
+  let data, email_fetched, ver_status_fetched, returned_values;
 
   const sessionid = getCookie('sessionid');
   if (sessionid === null) {
@@ -118,22 +120,6 @@ function EditProfile() {
     window.location.replace('/profile/verify');
   }
 
-  const getVerificationStatus = async (email) => {
-    try {
-      const response = await fetch('http://127.0.0.1:8060/getVerificationStatus/?email=' + email);
-      data = await response.json();
-      if (data.verified) {
-        let status = document.getElementById("verification-status");
-        status.style.color = "green";
-        status.innerHTML = "Verified";
-        document.getElementById("reqCodeGroup").style.display = "None";
-      }
-    } catch (error) {
-      
-    }
-  }
-  // My attempt.
-
   const fetchData = async () => {
     if (received_reply) {
       return;
@@ -148,6 +134,10 @@ function EditProfile() {
 
       const email_response = await fetch('http://127.0.0.1:8060/getEmail/?sessionid=' + sessionid);
       email_fetched = await email_response.json();
+
+      const ver_response = await fetch('http://127.0.0.1:8060/getVerificationStatus/?sessionid=' + sessionid);
+      ver_status_fetched = await ver_response.json();
+
     } catch (error) {
       setErrorMessages({name: "server", message: "Server Error: " + error})
     }
@@ -162,9 +152,9 @@ function EditProfile() {
     }
     const [student_id, uni_id, email, graduation_year, major, hobbies, interests, fname, lname] = data.result[0];
     set_profile_info({student_id, uni_id, email, graduation_year, major, hobbies, interests, fname, lname});
+    set_verification_status(ver_status_fetched.verified);
+
     set_received_reply(true);
-    getVerificationStatus(email); // My attempt.
-    localStorage.setItem('emailAddr',email); // My attempt.
   })
 
   const {
@@ -297,7 +287,6 @@ function EditProfile() {
               </div>
             </div>
 
-            {/* My attempt. */}
             <div className="panel panel-default">
               <div className="panel-heading">
                 <h4 className="panel-title">Verify e-mail</h4>
@@ -306,17 +295,20 @@ function EditProfile() {
                 <div className='form-group'>
                   <label className="col-sm-2 control-label">Verification status</label>
                   <div className='col-sm-10'>
-                    <p id="verification-status">Unverified</p>
+                    <p id="verification-status"
+                       style={{color: verfication_status ? 'green' : 'red'}}>{verfication_status ? 'Verified' : 'Unverified'}</p>
                   </div>
                 </div>
-                <div id='reqCodeGroup' className='form-group'>
+
+                {!verfication_status ? (<div id='reqCodeGroup' className='form-group'>
                   <label className="col-sm-2 control-label">Request verification code</label>
                   <div className='col-sm-10'>
                     <button type="button" className='btn btn-primary' onClick={handleVerify}>Request Code</button>
                   </div>
-                </div>
-              </div> 
-            </div> {/* - Added to fix display issue. */}
+                </div>) : <div></div>}
+              </div>
+            </div>
+            {/* - Added to fix display issue. */}
             {/* My attempt. */}
 
             <div className="panel panel-default">
@@ -353,9 +345,9 @@ function EditProfile() {
                 {renderErrorMessage("server")}
                 {renderErrorMessage("password")}
 
-              </div>              
-            </div>            
-          {/* </div> - Removed to fix display issue. */}
+              </div>
+            </div>
+            {/* </div> - Removed to fix display issue. */}
           </form>
         </div>
       </div>

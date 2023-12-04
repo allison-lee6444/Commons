@@ -16,7 +16,6 @@ def check_login(cur, email, password):
         return False
 
     # Should only have 1 account
-    print(result)
     if len(result) == 1:
         return True
     return False
