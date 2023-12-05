@@ -1,5 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap');
-p {color: #000080;}
+
+p {
+  color: #000080;
+}
 
 * {
   box-sizing: border-box;
@@ -17,16 +20,20 @@ p {color: #000080;}
   justify-content: center;
   align-items: center;
 }
+
 .home__container > * {
   margin-bottom: 10px;
 }
+
 .home__header {
   margin-bottom: 30px;
 }
+
 .username__input {
   padding: 10px;
   width: 50%;
 }
+
 .home__cta {
   width: 200px;
   padding: 10px;
@@ -38,12 +45,14 @@ p {color: #000080;}
   border: none;
   border-radius: 5px;
 }
+
 .chat {
   width: 100%;
   height: 100vh;
   display: flex;
   align-items: center;
 }
+
 .chat__sidebar {
   color: blue;
   height: 100%;
@@ -57,21 +66,25 @@ p {color: #000080;}
   height: 100%;
   flex: 0.8;
 }
+
 .chat__header {
   color: black;
   margin: 30px 0 20px 0;
 }
+
 .chat__users > * {
   margin-bottom: 10px;
   color: #607eaa;
   font-size: 14px;
 }
+
 .online__users > * {
 
   margin-bottom: 10px;
   color: black;
   font-style: italic;
 }
+
 .chat__mainHeader {
   width: 100%;
   height: 10vh;
@@ -81,6 +94,7 @@ p {color: #000080;}
   padding: 20px;
   background-color: #f9f5eb;
 }
+
 .leaveChat__btn {
   padding: 10px;
   width: 150px;
@@ -90,6 +104,7 @@ p {color: #000080;}
   cursor: pointer;
   color: #eae3d2;
 }
+
 .message__container {
   width: 100%;
   height: 80vh;
@@ -102,11 +117,13 @@ p {color: #000080;}
 .message__container > * {
   margin-bottom: 10px;
 }
+
 .chat__footer {
   padding: 10px;
   background-color: #f9f5eb;
   height: 10vh;
 }
+
 .form {
   width: 100%;
   height: 100%;
@@ -114,6 +131,7 @@ p {color: #000080;}
   align-items: center;
   justify-content: space-between;
 }
+
 .message {
   width: 80%;
   height: 100%;
@@ -123,6 +141,7 @@ p {color: #000080;}
   color: black;
   padding: 15px;
 }
+
 .sendBtn {
   width: 150px;
   background-color: green;
@@ -132,9 +151,11 @@ p {color: #000080;}
   color: #eae3d2;
   cursor: pointer;
 }
+
 .sendBtn:hover {
   background-color: rgb(129, 201, 129);
 }
+
 .message__recipient {
   background-color: #f5ccc2;
   width: 300px;
@@ -142,6 +163,7 @@ p {color: #000080;}
   border-radius: 10px;
   font-size: 15px;
 }
+
 .message__sender {
   background-color: rgb(194, 243, 194);
   max-width: 300px;
@@ -150,15 +172,33 @@ p {color: #000080;}
   margin-left: auto;
   font-size: 15px;
 }
+
 .message__chats > p {
   font-size: 13px;
 }
+
 .sender__name {
   text-align: right;
 }
+
 .message__status {
   position: fixed;
   bottom: 50px;
   font-size: 13px;
   font-style: italic;
+}
+
+.chat__entry {
+  border-radius: 15px;
+  font-size: 20px;
+  text-align: center;
+  width: 100%;
+}
+
+.chat__selectedentry {
+  background-color: #ebebe4;
+  border-radius: 15px;
+  font-size: 20px;
+  text-align: center;
+  width: 100%;
 }

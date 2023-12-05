@@ -3,7 +3,6 @@ from fastapi import HTTPException
 import datetime
 
 def serialize_datetime(obj):
-    print(type(obj))
     if isinstance(obj, (datetime.datetime,datetime.time,datetime.date)):
         return obj.isoformat()
 
