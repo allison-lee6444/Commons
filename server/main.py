@@ -171,7 +171,7 @@ def getCourses(sessionid):
 @app.get("/hasConflict/")
 def hasConflict(startTime, endTime, studentID):
     return {"result": events.has_conflict(cur, startTime, endTime, studentID)}
-
+ 
 
 @app.put("/saveMessage/")
 def saveMessage(sender_id, chatroomID, message_sent):
