@@ -83,8 +83,29 @@ def get_courses_sections():
 # Method to check if a student's major or graduation has changed.  If it did, return the new values.
 # Student should be verified at this point so we use studentID.
 def checkProfileChange(studentID,major,gradYear):
-    pass
-
+    try:
+        cur.execute(
+            "SELECT * FROM student WHERE student_id=%(studentID)s AND major=%(major)s AND "
+            "graduation_year=%(gradYear)s",{'studentID':studentID,'major':major,'gradYear':gradYear}
+        )
+        result = cur.fetchall()
+        # Student's profile changed.
+        if len(result) == 0:
+            cur.execute(
+                "SELECT major,graduation_year FROM student WHERE student_id=%(studentID)s",
+                {'studentID':studentID}
+            )
+            newProfileResult = cur.fetchone()
+            major = newProfileResult[0]
+            gradYear = newProfileResult[1]
+            return {
+                "major":major,
+                "graduation_year":gradYear
+            }
+        return {"no_profile_change":True}
+    except Exception as e:
+        print(e)
+        return {"error":True}
 
 # Method to handle user identity verification requests.
 @app.get("/verifyStudentEmail")
