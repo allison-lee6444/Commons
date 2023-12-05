@@ -105,7 +105,20 @@ def checkProfileChange(studentID,major,gradYear):
         return {"no_profile_change":True}
     except Exception as e:
         print(e)
-        return {"error":True}
+        return {"error": True}
+
+
+def get_courses_sections():
+    try:
+        cur.execute("SELECT * FROM course")
+        courses = cur.fetchall()
+        cur.execute("SELECT * FROM section")
+        sections = cur.fetchall()
+        return {"course": courses, "section": sections}
+    except Exception as e:
+        print(e)
+        return {"error": True}
+
 
 # Method to handle user identity verification requests.
 @app.get("/verifyStudentEmail")
