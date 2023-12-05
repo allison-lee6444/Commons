@@ -13,7 +13,6 @@ DROP TABLE IF EXISTS course;
 DROP TABLE IF EXISTS university;;
 DROP TABLE IF EXISTS game;
 DROP TABLE IF EXISTS event;
-DROP TABLE IF EXISTS invite;
 
 CREATE TABLE IF NOT EXISTS student(
     student_id bigint,
@@ -82,17 +81,6 @@ CREATE TABLE IF NOT EXISTS chatroom(
     --only non-course chatrooms will have invite_ids, because students will get added automatically to course chatrooms
     primary key(id),
     foreign key(uni_id) REFERENCES university(id) ON DELETE CASCADE  
-);
-
-CREATE TABLE IF NOT EXISTS invite(
-    invite_id varchar(10),
-    chatroom_id bigint,
-    invite_sender_id bigint, --student id of the user who is sending the invite
-    target_user_id bigint, --student id of the user who is being invited
-    primary key(invite_id),
-    foreign key(target_user_id) REFERENCES student(student_id),
-    foreign key(chatroom_id, invite_sender_id) REFERENCES in_chatroom(chatroom_id, student_id)
-    --make sure the user sending the invite is in the chatroom
 );
 
 CREATE TABLE IF NOT EXISTS flashcard(
