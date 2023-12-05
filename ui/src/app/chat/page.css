@@ -60,6 +60,8 @@ p {
   flex: 0.2;
   padding: 20px;
   border-right: 1px solid #fdfdfd;
+  overflow-y: scroll;
+
 }
 
 .chat__main {
@@ -201,4 +203,13 @@ p {
   font-size: 20px;
   text-align: center;
   width: 100%;
+}
+
+.curr-chatroom-name {
+  font-size: 25px;
+}
+
+.commons-logo {
+  font-size: 40px;
+  text-align: center;
 }
