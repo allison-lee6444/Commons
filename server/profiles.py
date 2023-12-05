@@ -59,4 +59,6 @@ def get_student_uni_id(cur, email):
         )
 
     result = cur.fetchone()
+    if result is None:
+        result = (None, None)
     return result

@@ -1,48 +1,50 @@
-import React from 'react'
+import React, {useContext} from 'react'
 import {useNavigate} from "react-router-dom"
+import {SelectedChatroomContext, ChatroomListContext} from "@/app/components/ChatContext";
 
-const ChatBody = ({messages, typingStatus, lastMessageRef}) => { 
+const ChatBody = ({messages, typingStatus, lastMessageRef}) => {
   const navigate = useNavigate()
-  
+  const [selected_chatroom, _] = useContext(SelectedChatroomContext);
+  const chatroom_list = useContext(ChatroomListContext);
 
   const handleLeaveChat = () => {
     localStorage.removeItem("userName")
     navigate("/")
     window.location.reload()
   }
-  
+
   return (
     <>
       <header className='chat__mainHeader'>
-          <p>Hangout with Colleagues</p>
-          <button className='leaveChat__btn' onClick={handleLeaveChat}>LEAVE CHAT</button>
-        </header>
+        <p className="curr-chatroom-name">{chatroom_list.find((elem)=>elem[0]===selected_chatroom)[1]}</p>
+        <button className='leaveChat__btn' onClick={handleLeaveChat}>LOGOUT</button>
+      </header>
 
 
-        <div className='message__container'>
-          {messages.map(message => (
-            message.name === localStorage.getItem("userName") ? (
-              <div className="message__chats" key={message.id}>
-            <p className='sender__name'>You</p>
-            <div className='message__sender'>
+      <div className='message__container'>
+        {messages.map(message => (
+          message.name === localStorage.getItem("userName") ? (
+            <div className="message__chats" key={message.id}>
+              <p className='sender__name'>You</p>
+              <div className='message__sender'>
                 <p>{message.text}</p>
+              </div>
             </div>
-          </div>
-            ): (
-              <div className="message__chats" key={message.id}>
-            <p>{message.name}</p>
-            <div className='message__recipient'>
+          ) : (
+            <div className="message__chats" key={message.id}>
+              <p>{message.name}</p>
+              <div className='message__recipient'>
                 <p>{message.text}</p>
+              </div>
             </div>
-          </div>
-            )
-            ))}
+          )
+        ))}
 
-          <div className='message__status'>
-            <p>{typingStatus}</p>
-          </div>
-          <div ref={lastMessageRef} />   
+        <div className='message__status'>
+          <p>{typingStatus}</p>
         </div>
+        <div ref={lastMessageRef}/>
+      </div>
     </>
   )
 }

@@ -48,4 +48,4 @@ def test_getChatrooms(postgresql):
     cur = postgresql.cursor()
     make_db(cur)
     # start
-    assert chatroom.getChatrooms(cur, 123456)['chatrooms'] == [(1, "CS-UY 1234 Chatroom")]
+    assert chatroom.getChatrooms(cur, 123456, 'NYU')['chatrooms'] == [(1, "CS-UY 1234 Chatroom")]

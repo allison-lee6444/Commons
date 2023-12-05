@@ -111,6 +111,11 @@ def getEmail(sessionid):
 def newMessages(chatroomID, dateTime):
     return chatroom.get_msg_update(cur, chatroomID, dateTime)
 
+@app.get("/getChatroom/")
+def getChatroom(sessionid):
+    email = check_session_id(sessionid)
+    student_id, uni_id = profiles.get_student_uni_id(cur, email)
+    return chatroom.getChatrooms(cur, student_id, uni_id)
 
 # Method to create a new event and save it in the DB.
 @app.post("/editEvent/")
