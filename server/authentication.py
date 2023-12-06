@@ -59,6 +59,7 @@ def change_password(cur, email, current_pw, new_pw):
     try:
         cur.execute("UPDATE student SET password=%(hashed_password)s WHERE email=%(email)s",
                     {'email': email, 'hashed_password': hashed_password})
+        cur.execute("COMMIT")
     except BaseException as e:
         print(f'Exception: {e}')
         raise HTTPException(

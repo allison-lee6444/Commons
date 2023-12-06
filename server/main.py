@@ -111,11 +111,13 @@ def getEmail(sessionid):
 def newMessages(chatroomID, dateTime):
     return chatroom.get_msg_update(cur, chatroomID, dateTime)
 
+
 @app.get("/getChatroom/")
 def getChatroom(sessionid):
     email = check_session_id(sessionid)
     student_id, uni_id = profiles.get_student_uni_id(cur, email)
     return chatroom.getChatrooms(cur, student_id, uni_id)
+
 
 # Method to create a new event and save it in the DB.
 @app.post("/editEvent/")
@@ -181,13 +183,15 @@ def hasConflict(sessionid, startTime, endTime):
 
 
 @app.put("/saveMessage/")
-def saveMessage(sender_id, chatroomID, message_sent):
-    return {"result": chatroom.saveMessage(cur, sender_id, chatroomID, message_sent)}
+def saveMessage(sessionid, chatroomID, message_sent):
+    email = check_session_id(sessionid)
+    student_id, _ = profiles.get_student_uni_id(cur, email)
+    return {"result": chatroom.saveMessage(cur, student_id, chatroomID, message_sent)}
 
 
 @app.get("/retrieveMessages/")
-def retrieveMessages(chatroom_id):
-    return {"result": chatroom.retrieveMessages(cur, chatroom_id)}
+def retrieveMessages(chatroomID):
+    return {"result": chatroom.retrieveMessages(cur, chatroomID)}
 
 
 @app.get("/importStudentSchedule/")

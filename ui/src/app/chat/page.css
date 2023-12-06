@@ -160,23 +160,27 @@ p {
 
 .message__recipient {
   background-color: #f5ccc2;
-  width: 300px;
+  max-width: 800px;
+  width: fit-content;
   padding: 10px;
   border-radius: 10px;
-  font-size: 15px;
+  font-size: 18px;
+  word-wrap: break-word;
 }
 
 .message__sender {
   background-color: rgb(194, 243, 194);
-  max-width: 300px;
+  max-width: 800px;
+  width: fit-content;
   padding: 10px;
   border-radius: 10px;
   margin-left: auto;
-  font-size: 15px;
+  font-size: 18px;
+  word-wrap: break-word;
 }
 
 .message__chats > p {
-  font-size: 13px;
+  font-size: 15px;
 }
 
 .sender__name {
@@ -205,14 +209,6 @@ p {
   width: 100%;
 }
 
-.curr-chatroom-name {
-  font-size: 25px;
-}
-
-.commons-logo {
-  font-size: 40px;
-  text-align: center;
-}
 
 .menu_button {
   display: block;
@@ -224,4 +220,14 @@ p {
   margin: 5px;
   color: white;
   text-decoration: none;
+}
+
+.curr-chatroom-name {
+  font-size: 25px;
+}
+
+.commons-logo {
+  color: rgb(76, 76, 62);
+  font-size: 40px;
+  text-align: center;
 }

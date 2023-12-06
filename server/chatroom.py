@@ -25,8 +25,16 @@ def get_msg_update(cur, chatroom_id, date_time):
 
 # Retrieve message functionality
 def retrieveMessages(cur, chatroom_id):
-    cur.execute("SELECT * FROM message WHERE chatroom_id= %(chatroom_id)s", {"chatroom_id": chatroom_id})
-    result = json.dumps(cur.fetchall(), default=serialize_datetime)
+    try:
+        cur.execute("SELECT * FROM message WHERE chatroom_id= %(chatroom_id)s", {"chatroom_id": chatroom_id})
+        result = json.dumps(cur.fetchall(), default=serialize_datetime)
+    except BaseException as e:
+        print(f'Exception: {e}')
+        raise HTTPException(
+            status_code=500,
+            detail="Database Error",
+        )
+    cur.execute("COMMIT")
     return result
 
 
@@ -38,9 +46,14 @@ def saveMessage(cur, sender_id, chatroomID, message_sent):
             "INSERT INTO message(sender_id, chatroom_id, message_text, date_time_sent) VALUES(%(sender_id)s, %(chatroomID)s, %(message_sent)s, %(date_time_sent)s)",
             {"sender_id": sender_id, "chatroomID": chatroomID, "message_sent": message_sent,
              "date_time_sent": date_time_sent})
+        cur.execute("COMMIT")
         return True
-    except:
-        return False
+    except BaseException as e:
+        print(f'Exception: {e}')
+        raise HTTPException(
+            status_code=500,
+            detail="Database Error",
+        )
 
 
 # Create non-course chatroom
@@ -54,9 +67,14 @@ def createChatroom(cur, user_id, chatroom_name, uni_id):
         cur.execute(
             "INSERT INTO in_chatroom(student_id, uni_id, chatroom_id) VALUES(%(user_id)s, %(uni_id)s, %(chatroom_id)s)",
             {"user_id": user_id, "uni_id": uni_id, "chatroom_id": chatroom_id})
+        cur.execute("COMMIT")
         return True
-    except:
-        return False
+    except BaseException as e:
+        print(f'Exception: {e}')
+        raise HTTPException(
+            status_code=500,
+            detail="Database Error",
+        )
 
 
 def getChatrooms(cur, student_id, uni_id):
