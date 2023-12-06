@@ -27,24 +27,8 @@ def retrieve_messages(cur, chatroom_id):
     try:
         cur.execute("SELECT (sender_id, chatroom_id, message_text, cast(date_time_sent as text)) FROM message WHERE chatroom_id= %(chatroom_id)s",
                      {"chatroom_id": chatroom_id})
-        info = cur.fetchall()
-        
-        result = []
-        i = 0
- 
-        for i in range(len(info)):
-            x = info[i]
-            result.append({})
-            result[i]["sender_id"] = x[0][0] 
-            result[i]["chatroom_id"] = x[0][1]
-            result[i]["message_text"] = x[0][2]
-            result[i]["date_time_sent"] = x[0][3]
-        result = json.dumps(result)
-
+        result = json.dumps(cur.fetchall())
         return result
-    
-    
-
     except BaseException as e:
         print(f'Exception: {e}')
         raise HTTPException(
