@@ -1,7 +1,7 @@
 import datetime
 import requests
 from server import cursor
-from server import schedule 
+from server import request_uni 
 
 # Update student major and graduation year if it has changed.
 def update_outdated_profiles(cur):
@@ -63,12 +63,13 @@ def add_new_courses(cur):
     # Go through email and call the same function used to import their schedule when they first register.
     # Assumption: University server will have the current schedule for the student.
     for email in emails:
-        status = schedule.request_schedule(cur,email)
+        status = request_uni.request_schedule(cur,email)
         if not status:
             print("Error importing schedule for student with email: "+email)
     print("Schedule import complete.")
 
-update_outdated_profiles(cursor.cur)
-del_old_courses(cursor.cur)
-add_new_courses(cursor.cur)
+# Comment out before running pytest.
+#update_outdated_profiles(cursor.cur)
+#del_old_courses(cursor.cur)
+#add_new_courses(cursor.cur)
 print("Utility complete.")

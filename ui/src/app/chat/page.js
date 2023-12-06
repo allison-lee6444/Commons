@@ -49,7 +49,7 @@ function chatRoom() {
     }
   }
 
-  getVerificationStatus();
+  //getVerificationStatus(); // UNCOMMENT - TESTING
   // My attempt - check if student is verified.
 
   return (

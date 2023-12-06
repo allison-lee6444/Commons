@@ -23,6 +23,10 @@ def fetch_catalog(cur):
 
                 # If this row isn't already in course ...
                 if len(result) == 0:
+                    #
+                    cur.execute("SELECT * FROM university")
+                    print(cur.fetchall())
+                    #
                     cur.execute(
                         "INSERT INTO course VALUES(%(courseID)s,%(uniID)s)",courseData
                     )
@@ -48,9 +52,9 @@ def fetch_catalog(cur):
                             'uniID': row[2],
                             'secID': row[1],
                             'startTime': row[3],
-                            'endtime': row[4],
+                            'endTime': row[4],
                             'semStart': row[5],
-                            'semdEnd': row[6],
+                            'semEnd': row[6],
                             'year': row[7],
                             'meetsMon': row[8],
                             'meetsTue': row[9],
@@ -64,5 +68,6 @@ def fetch_catalog(cur):
             print("Completed sectionns.")
 
 print("Starting utility ...")
-fetch_catalog(cursor.cur)
+# Comment out before running pytest.
+#fetch_catalog(cursor.cur)
 print("Completed utility.")
