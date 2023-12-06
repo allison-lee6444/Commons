@@ -69,6 +69,44 @@ def retrieveProfile(email):
         print(e)
         return {"error": True}
 
+def get_courses_sections():
+    try:
+        cur.execute("SELECT * FROM course")
+        courses = cur.fetchall()
+        cur.execute("SELECT * FROM section")
+        sections = cur.fetchall()
+        return {"course": courses, "section": sections}
+    except Exception as e:
+        print(e)
+        return {"error": True}
+    
+# Method to check if a student's major or graduation has changed.  If it did, return the new values.
+# Student should be verified at this point so we use studentID.
+def checkProfileChange(studentID,major,gradYear):
+    try:
+        cur.execute(
+            "SELECT * FROM student WHERE student_id=%(studentID)s AND major=%(major)s AND "
+            "graduation_year=%(gradYear)s",{'studentID':studentID,'major':major,'gradYear':gradYear}
+        )
+        result = cur.fetchall()
+        # Student's profile changed.
+        if len(result) == 0:
+            cur.execute(
+                "SELECT major,graduation_year FROM student WHERE student_id=%(studentID)s",
+                {'studentID':studentID}
+            )
+            newProfileResult = cur.fetchone()
+            major = newProfileResult[0]
+            gradYear = newProfileResult[1]
+            return {
+                "major":major,
+                "graduation_year":gradYear
+            }
+        return {"no_profile_change":True}
+    except Exception as e:
+        print(e)
+        return {"error": True}
+
 
 def get_courses_sections():
     try:
@@ -99,11 +137,14 @@ def getStudentSchedule(email):
 def getStudentProfile(email):
     return retrieveProfile(email)
 
-
 @app.get("/getCoursesSections")
 def getCoursesSections():
     return get_courses_sections()
 
+# Method to handle requests to see if a student's profile changed.
+@app.get("/checkProfile")
+def checkProfile(studentID,major,gradYear):
+    return checkProfileChange(studentID,major,gradYear)
 
 # <<< [TEST - DELETE AFTER TEST] >>> #
 # Fake Server Communication Test
