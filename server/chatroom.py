@@ -25,7 +25,7 @@ def get_msg_update(cur, chatroom_id, date_time):
 # Retrieve message functionality
 def retrieve_messages(cur, chatroom_id):
     try:
-        cur.execute("SELECT (sender_id, chatroom_id, message_text, cast(date_time_sent as text)) FROM message WHERE chatroom_id= %(chatroom_id)s",
+        cur.execute("SELECT (sender_id, email, fname, lname, chatroom_id, message_text, cast(date_time_sent as text)) FROM message JOIN student ON student_id = sender_id WHERE chatroom_id= %(chatroom_id)s",
                      {"chatroom_id": chatroom_id})
         result = json.dumps(cur.fetchall())
         return result
