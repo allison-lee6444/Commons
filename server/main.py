@@ -9,7 +9,7 @@ import chatroom
 import events
 import profiles
 import request_uni
-#import verification # UNCOMMENT
+import verification 
 import flashcard
 from cursor import cur
 
@@ -199,8 +199,7 @@ def importStudentSchedule(email):
 def importStudentProfile(email):
     return {"result": request_uni.request_profile(cur, email)}
 
-# UNCOMMENT
-"""@app.post("/verifyIdentity/")
+@app.post("/verifyIdentity/")
 def verifyIdentity(sessionid):
     email = check_session_id(sessionid)
     if getVerificationStatus(sessionid)['verified']:
@@ -217,8 +216,7 @@ def checkVerificationCode(sessionid, token):
     if is_verified:
         request_uni.request_schedule(cur, email)
         request_uni.request_profile(cur, email)
-    return {"result": is_verified}"""
-# UNCOMMENT
+    return {"result": is_verified}
 
 @app.post("/createFlashcard/")
 def createFlashcard(chatroom_id, front_text, back_text):
