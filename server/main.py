@@ -9,7 +9,7 @@ import chatroom
 import events
 import profiles
 import request_uni
-import verification 
+import verification
 import flashcard
 from cursor import cur
 
@@ -111,11 +111,13 @@ def getEmail(sessionid):
 def newMessages(chatroomID, dateTime):
     return chatroom.get_msg_update(cur, chatroomID, dateTime)
 
+
 @app.get("/getChatroom/")
 def getChatroom(sessionid):
     email = check_session_id(sessionid)
     student_id, uni_id = profiles.get_student_uni_id(cur, email)
     return chatroom.getChatrooms(cur, student_id, uni_id)
+
 
 # Method to create a new event and save it in the DB.
 @app.post("/editEvent/")
@@ -181,13 +183,15 @@ def hasConflict(sessionid, startTime, endTime):
 
 
 @app.put("/saveMessage/")
-def saveMessage(sender_id, chatroomID, message_sent):
-    return {"result": chatroom.saveMessage(cur, sender_id, chatroomID, message_sent)}
+def saveMessage(sessionid, chatroomID, message_sent):
+    email = check_session_id(sessionid)
+    student_id, _ = profiles.get_student_uni_id(cur, email)
+    return {"result": chatroom.saveMessage(cur, student_id, chatroomID, message_sent)}
 
 
 @app.get("/retrieveMessages/")
-def retrieveMessages(chatroom_id):
-    return {"result": chatroom.retrieveMessages(cur, chatroom_id)}
+def retrieveMessages(chatroomID):
+    return {"result": chatroom.retrieveMessages(cur, chatroomID)}
 
 
 @app.get("/importStudentSchedule/")
@@ -198,6 +202,7 @@ def importStudentSchedule(email):
 @app.get("/importStudentProfile/")
 def importStudentProfile(email):
     return {"result": request_uni.request_profile(cur, email)}
+
 
 @app.post("/verifyIdentity/")
 def verifyIdentity(sessionid):
@@ -217,6 +222,7 @@ def checkVerificationCode(sessionid, token):
         request_uni.request_schedule(cur, email)
         request_uni.request_profile(cur, email)
     return {"result": is_verified}
+
 
 @app.post("/createFlashcard/")
 def createFlashcard(chatroom_id, front_text, back_text):
@@ -238,6 +244,7 @@ def getAllFlashcards(chatroom_id):
 def getVerificationStatus(sessionid):
     email = check_session_id(sessionid)
     return profiles.is_verified(cur, email)
+
 
 # Test function to send random data.
 @app.get("/test/")

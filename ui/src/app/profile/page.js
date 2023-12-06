@@ -69,7 +69,7 @@ function Profile() {
 
           <nav aria-label="breadcrumb" className="main-breadcrumb">
             <ol className="breadcrumb">
-              <li className="breadcrumb-item"><a href="/chatroom">Chatrooms</a></li>
+              <li className="breadcrumb-item"><a href="/chat">Chatrooms</a></li>
               <li className="breadcrumb-item active" aria-current="page">User Profile</li>
             </ol>
           </nav>

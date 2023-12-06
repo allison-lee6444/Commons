@@ -1,5 +1,13 @@
+import sys
+
 import requests
-from server import cursor
+from pathlib import Path
+
+path = Path(__file__).parent.parent
+sys.path.append(str(path))
+
+import cursor
+
 
 def fetch_catalog(cur):
     print("Making request to university server.")
@@ -15,9 +23,9 @@ def fetch_catalog(cur):
             print("Processing courses.")
             for row in courses:
                 # First check if the course is already in course.
-                courseData = {'courseID':row[0],'uniID':row[1]}
+                courseData = {'courseID': row[0], 'uniID': row[1]}
                 cur.execute(
-                    "SELECT * FROM course WHERE id=%(courseID)s AND uni_id=%(uniID)s",courseData
+                    "SELECT * FROM course WHERE id=%(courseID)s AND uni_id=%(uniID)s", courseData
                 )
                 result = cur.fetchall()
 
@@ -28,7 +36,7 @@ def fetch_catalog(cur):
                     print(cur.fetchall())
                     #
                     cur.execute(
-                        "INSERT INTO course VALUES(%(courseID)s,%(uniID)s)",courseData
+                        "INSERT INTO course VALUES(%(courseID)s,%(uniID)s)", courseData
                     )
             print("Completed courses.")
 
@@ -37,7 +45,7 @@ def fetch_catalog(cur):
                 # First check if the section is already in section.
                 cur.execute(
                     "SELECT * FROM section WHERE course_id=%(courseID)s AND uni_id=%(uniID)s AND section_id=%(secID)s",
-                    {'courseID':row[0] ,'uniID':row[2] ,'secID':row[1]}
+                    {'courseID': row[0], 'uniID': row[2], 'secID': row[1]}
                 )
                 result = cur.fetchall()
 
@@ -66,8 +74,10 @@ def fetch_catalog(cur):
                         }
                     )
             print("Completed sectionns.")
+    cur.execute('COMMIT')
 
-print("Starting utility ...")
-# Comment out before running pytest.
-#fetch_catalog(cursor.cur)
-print("Completed utility.")
+
+if __name__ == "__main__":
+    print("Starting utility ...")
+    fetch_catalog(cursor.cur)
+    print("Completed utility.")

@@ -1,12 +1,10 @@
 from fastapi import HTTPException
 
+student_uni_id_cache = {}  # need to solve the race condition by too frequent call of get_student_uni_id
+
 
 def is_verified(cur, email):
-    cur.execute("SELECT * FROM student WHERE email=%(email)s AND student_id IS NOT NULL", {'email': email})
-    result = cur.fetchall()
-    if len(result) != 0:
-        return {"verified": True}
-    return {"verified": False}
+    return {'verified': get_student_uni_id(cur, email) != (None, None)}
 
 
 def edit_profile(cur, email, hobbies, interests, fname, lname, new_email):
@@ -29,7 +27,7 @@ def edit_profile(cur, email, hobbies, interests, fname, lname, new_email):
             status_code=500,
             detail="Database Error",
         )
-    cur.execute("COMMIT")  # delete
+    cur.execute("COMMIT")
     return True
 
 
@@ -43,22 +41,22 @@ def get_profile(cur, email):
             status_code=500,
             detail="Database Error",
         )
-
     result = cur.fetchall()
     return {'result': result}
 
 
 def get_student_uni_id(cur, email):
+    if email in student_uni_id_cache:  # cache hit!
+        return student_uni_id_cache[email]
+
     try:
-        cur.execute("SELECT student_id,uni_id FROM student WHERE email=%(email)s", {'email': email})
+        cur.execute("SELECT student_id, uni_id FROM student WHERE email=%(email)s", {'email': email})
     except BaseException as e:
         print(f'Exception: {e}')
         raise HTTPException(
             status_code=500,
             detail="Database Error",
         )
-
     result = cur.fetchone()
-    if result is None:
-        result = (None, None)
+    student_uni_id_cache[email] = result
     return result

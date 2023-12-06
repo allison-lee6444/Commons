@@ -1,18 +1,21 @@
-import React, {useState} from 'react'
+import React, {useContext, useState} from 'react'
+import {SelectedChatroomContext} from "@/app/components/ChatContext";
 
 const ChatFooter = ({socket}) => {
     const [message, setMessage] = useState("")
     const handleTyping = () => socket.emit("typing",`${localStorage.getItem("userName")} is typing`)
-
+    const [selected_chatroom, _] = useContext(SelectedChatroomContext)
     const handleSendMessage = (e) => {
         e.preventDefault()
         if(message.trim() && localStorage.getItem("userName")) {
-        socket.emit("message", 
+        socket.emit("message",
             {
             text: message, 
-            name: localStorage.getItem("userName"), 
-            id: `${socket.id}${Math.random()}`,
-            socketID: socket.id
+            name: localStorage.getItem("userName"),
+            datetime: new Date(),
+            chatroom: selected_chatroom,
+            socketID: socket.id,
+            acked: false
             }
         )
         }

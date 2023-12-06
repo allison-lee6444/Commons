@@ -252,7 +252,7 @@ function EditProfile() {
                       className="form-control"
                       defaultValue={profile_info.email}
                       required={true}
-                      {...register("email")}
+                      {...register("email", {disabled: verfication_status})}
                     />
                   </div>
                 </div>

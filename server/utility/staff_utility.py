@@ -1,7 +1,12 @@
 import datetime
+import sys
 import requests
-from server import cursor
-from server import request_uni 
+from pathlib import Path
+
+path = Path(__file__).parent.parent
+sys.path.append(str(path))
+
+import cursor, request_uni
 
 # Update student major and graduation year if it has changed.
 def update_outdated_profiles(cur):
@@ -31,15 +36,16 @@ def update_outdated_profiles(cur):
 
                     cur.execute(
                         "UPDATE student SET major=%(newMajor)s, graduation_year=%(newGradYear)s "
-                        "WHERE student_id=%(id)s",{'newMajor':newMajor,'newGradYear':newGradYear,'id':id}
+                        "WHERE student_id=%(id)s", {'newMajor': newMajor, 'newGradYear': newGradYear, 'id': id}
                     )
             else:
                 print("WARNING: An error was found in a request to university server.")
         else:
-            print("WARNING: At least one request to university server failed. Error: "+str(response.status_code))
+            print("WARNING: At least one request to university server failed. Error: " + str(response.status_code))
             print("Re-run the 'update_outdates_profiles' function to try again.\n")
 
     print("Completed profile update.")
+
 
 # Go through the takes table, identify which courses are old based on semester end date, and delete them from takes.
 def del_old_courses(cur):
@@ -47,9 +53,10 @@ def del_old_courses(cur):
     currentDate = datetime.datetime.now().strftime('%Y-%m-%d')
     cur.execute(
         "DELETE FROM takes WHERE (SELECT section.semEndDate FROM section WHERE section.course_id = takes.course_id"
-        " AND section.section_id = takes.section_id) < %(currentDate)s",{'currentDate':currentDate}
+        " AND section.section_id = takes.section_id) < %(currentDate)s", {'currentDate': currentDate}
     )
     print("Schedule deletion complete.")
+
 
 # Ask university_server for the student's schedule (only if they are verified), if the current date is during the semester, add it to takes.
 # Assumption: University has up to date data.
@@ -63,13 +70,16 @@ def add_new_courses(cur):
     # Go through email and call the same function used to import their schedule when they first register.
     # Assumption: University server will have the current schedule for the student.
     for email in emails:
-        status = request_uni.request_schedule(cur,email)
+        status = request_uni.request_schedule(cur, email)
         if not status:
-            print("Error importing schedule for student with email: "+email)
+            print("Error importing schedule for student with email: " + email)
     print("Schedule import complete.")
 
-# Comment out before running pytest.
-#update_outdated_profiles(cursor.cur)
-#del_old_courses(cursor.cur)
-#add_new_courses(cursor.cur)
-print("Utility complete.")
+
+if __name__ == "__main__":
+    update_outdated_profiles(cursor.cur)
+    del_old_courses(cursor.cur)
+    add_new_courses(cursor.cur)
+    cursor.cur.execute('COMMIT')
+
+    print("Utility complete.")

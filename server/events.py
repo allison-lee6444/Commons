@@ -2,9 +2,11 @@ import json
 from fastapi import HTTPException
 import datetime
 
+
 def serialize_datetime(obj):
-    if isinstance(obj, (datetime.datetime,datetime.time,datetime.date)):
+    if isinstance(obj, (datetime.datetime, datetime.time, datetime.date)):
         return obj.isoformat()
+
 
 # Create a new event.
 def editEvent(cur, chatroom_id, event_name, host_id, uni_id, description, loc_name, loc_coords, start_time, end_time):
@@ -17,6 +19,7 @@ def editEvent(cur, chatroom_id, event_name, host_id, uni_id, description, loc_na
              'loc_name': loc_name,
              'loc_coords': loc_coords, 'startTime': start_time, 'endTime': end_time, 'chatroom_id': chatroom_id}
         )
+        cur.execute("COMMIT")
         return True
     except BaseException as e:
         print(f'Exception: {e}')
@@ -31,6 +34,7 @@ def join_event(cur, event_id, student_id, chatroom_id):
     try:
         cur.execute("INSERT INTO going_to_event VALUES (%(eventID)s,%(studentID)s,%(chatroomID)s)",
                     {'studentID': student_id, 'eventID': event_id, 'chatroomID': chatroom_id})
+        cur.execute("COMMIT")
         return True
     except BaseException as e:
         print(f'Exception: {e}')
@@ -54,6 +58,7 @@ def leave_event(cur, student_id, event_id):
             cur.execute("DELETE FROM going_to_event WHERE student_id = %(studentID)s AND event_id = %(eventID)s",
                         parameters
                         )
+            cur.execute("COMMIT")
             return True
         return False
     except BaseException as e:
@@ -74,6 +79,7 @@ def cancel_event(cur, host_id, event_id):
 
         if len(resultE) != 0:
             cur.execute("DELETE FROM event WHERE host_id = %(host_id)s AND event_id = %(eventID)s", parameters)
+            cur.execute("COMMIT")
 
             cur.execute("SELECT * FROM going_to_event WHERE event_id = %(eventID)s", {'eventID': event_id})
             resultGTE = cur.fetchall()
@@ -81,6 +87,7 @@ def cancel_event(cur, host_id, event_id):
             # If there are students going to the event, delete it from the table.
             if len(resultGTE) != 0:
                 cur.execute("DELETE FROM going_to_event WHERE event_id = %(eventID)s", {'eventID': event_id})
+                cur.execute("COMMIT")
             return True
         return False
     except BaseException as e:
@@ -89,6 +96,7 @@ def cancel_event(cur, host_id, event_id):
             status_code=500,
             detail="Database Error",
         )
+
 
 # Get a list of all events a user is participating in.
 def get_events(cur, student_id, uni_id):
@@ -103,7 +111,7 @@ def get_events(cur, student_id, uni_id):
             {'student_id': student_id, 'uni_id': uni_id}
         )
 
-        result = json.dumps(cur.fetchall(),default=serialize_datetime)
+        result = json.dumps(cur.fetchall(), default=serialize_datetime)
         return result
     except BaseException as e:
         print(f'Exception: {e}')
@@ -127,7 +135,7 @@ def get_event(cur, event_id, chatroom_id, student_id, uni_id):
 
         if len(result) != 1:
             raise LookupError("Number of records does not equal 1")
-        return json.dumps(result,default=serialize_datetime)
+        return json.dumps(result, default=serialize_datetime)
     except BaseException as e:
         print(f'Exception: {e}')
         raise HTTPException(
@@ -147,7 +155,7 @@ def get_courses(cur, student_id, uni_id):
             " takes.course_id = section.course_id AND takes.section_id = section.section_id WHERE "
             "takes.student_id = %(student_id)s AND takes.uni_id = %(uni_id)s",
             {'student_id': student_id, 'uni_id': uni_id})
-        result = json.dumps(cur.fetchall(),default=serialize_datetime)
+        result = json.dumps(cur.fetchall(), default=serialize_datetime)
         return result
     except BaseException as e:
         print(f'Exception: {e}')
@@ -171,7 +179,7 @@ def get_courses_meeting_on_same_day(cur, student_id, event_time):
     # semester.
     # <<< [TEST - UNCOMMENT AFTER TEST] >>>
     try:
-        week_meet_day = 'section.meets'+event_time.strftime('%A')[:3]
+        week_meet_day = 'section.meets' + event_time.strftime('%A')[:3]
         cur.execute(
             f"SELECT section.start_time,section.end_time FROM takes LEFT JOIN section ON takes.uni_id = section.uni_id AND "
             f"takes.course_id = section.course_id AND takes.section_id = section.section_id"
@@ -237,13 +245,13 @@ def has_conflict(cur, start_time, end_time, student_id):
 
     # > Get all courses the student is in as a list of tuples of type (CourseStartEpoch,CourseEndEpoch).
     course_result = []
-    course_result.extend(get_courses_meeting_on_same_day(cur,student_id, event_start_date_time))
+    course_result.extend(get_courses_meeting_on_same_day(cur, student_id, event_start_date_time))
     print(course_result)
     # If the event is on different dates ...
     event_start_date = event_start_date_time.strftime('%Y-%m-%d')
     event_end_date = event_end_date_time.strftime('%Y-%m-%d')
     if event_start_date != event_end_date:
-        course_result.extend(get_courses_meeting_on_same_day(cur,student_id, event_end_date_time))
+        course_result.extend(get_courses_meeting_on_same_day(cur, student_id, event_end_date_time))
 
     # > Go through the scheduled events/courses on the same days as the event and see if a conflict exists.
     schedule = event_result + course_result

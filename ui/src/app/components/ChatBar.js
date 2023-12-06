@@ -1,28 +1,26 @@
 import React, {useState, useEffect, useContext} from 'react'
 import {SelectedChatroomContext, ChatroomListContext} from "./ChatContext";
-// My attempt - redirect.
 import Link from 'next/link';
-// My attempt - redirect.
 
 const ChatBar = ({socket}) => {
   const [users, setUsers] = useState([])
   const [selected_chatroom, set_selected_chatroom] = useContext(SelectedChatroomContext);
   const chatroom_list = useContext(ChatroomListContext);
 
+
   useEffect(() => {
     socket.on("newUserResponse", data => setUsers(data))
   }, [socket, users])
 
+
   return (
     <div className='chat__sidebar'>
       <h2 className="commons-logo">Commons</h2>
-      {/* My Attempt - Redirect */}
       <div>
         <h4 className='chat__header'>MENU</h4>
         <Link className='menu_button' href="/events">Events</Link>
         <Link className='menu_button' href="/profile">Profile</Link>
       </div>
-      {/* My Attempt - Redirect */}
       <div>
         <h4 className='chat__header'>CHATROOMS</h4>
         <div className='chat__users'>

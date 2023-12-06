@@ -79,7 +79,7 @@ def get_courses_sections():
     except Exception as e:
         print(e)
         return {"error": True}
-    
+
 # Method to check if a student's major or graduation has changed.  If it did, return the new values.
 # Student should be verified at this point so we use studentID.
 def checkProfileChange(studentID,major,gradYear):
@@ -136,6 +136,12 @@ def getStudentSchedule(email):
 @app.get("/getStudentProfile")
 def getStudentProfile(email):
     return retrieveProfile(email)
+
+
+@app.get("/getCoursesSections")
+def getCoursesSections():
+    return get_courses_sections()
+
 
 @app.get("/getCoursesSections")
 def getCoursesSections():

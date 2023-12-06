@@ -10,11 +10,9 @@ const ChatPage = ({socket}) => {
   const [typingStatus, setTypingStatus] = useState("")
   const lastMessageRef = useRef(null);
   const [selected_chatroom, set_selected_chatroom] = useState(null);
-  const [received_reply, set_received_reply] = useState(false);
   const [errorMessages, setErrorMessages] = useState({});
-  const [chatroom_list, set_chatroom_list] = useState([])
-
-  let chatroom_data;
+  const [chatroom_list, set_chatroom_list] = useState([]);
+  const [received_reply, set_received_reply] = useState(false);
 
   const sessionid = getCookie('sessionid');
   if (sessionid === null) {
@@ -32,60 +30,73 @@ const ChatPage = ({socket}) => {
     );
 
   useEffect(() => {
-    socket.on("messageResponse", data => setMessages([...messages, data]))
-  }, [socket, messages])
+    fetch('http://127.0.0.1:8060/getChatroom/?sessionid=' + sessionid)
+      .then((response) => response.json())
+      .then((data) => {
+        set_chatroom_list(data.chatrooms);
+        set_selected_chatroom(data.chatrooms[0][0])
+        set_received_reply(true);
+      });
+  }, []);
 
   useEffect(() => {
-    socket.on("typingResponse", data => setTypingStatus(data))
-  }, [socket])
-
-  useEffect(() => {
-    // 👇️ scroll to bottom every time messages change
-    lastMessageRef.current?.scrollIntoView({behavior: 'smooth'});
-  }, [messages]);
-
-  const fetchData = async () => {
-    if (received_reply) {
+    if (selected_chatroom === null) {
       return;
     }
-    try {
-      const response = await fetch('http://127.0.0.1:8060/getChatroom/?sessionid=' + sessionid);
-      chatroom_data = await response.json();
-      setErrorMessages({name: 'server', message: 'test'})
-    } catch (error) {
-      setErrorMessages({name: "server", message: "Server Error: " + error})
-    }
-  }
 
-  fetchData().then(() => {
-    if (received_reply) {
-      return;
-    }
-    chatroom_data = {
-      'chatrooms': [[1, "CS-UY 1234"], [2, "CS-UY 9999"], [3, "CS Club"]
-      ]
-    } // temp fixture
+    fetch('http://127.0.0.1:8060/retrieveMessages/?chatroomID=' + selected_chatroom)
+      .then((response) => response.json())
+      .then((data) => {
+        const m = JSON.parse(data.result).map((elem) => {
+          const [student_id, chatroom_id, content, datetime] = elem;
+          return ({
+            text: content,
+            name: student_id,
+            datetime: Date.parse(datetime),
+            chatroom: chatroom_id,
+            socketID: socket.id,
+            acked: true
+          })
+        });
+        setMessages(m);
+      });
+}, [socket, selected_chatroom]
+)
+;
 
-    set_chatroom_list(chatroom_data.chatrooms);
-    set_selected_chatroom(chatroom_data.chatrooms[0][0])
-    set_received_reply(true);
+useEffect(() => {
+  socket.on("messageResponse", data => {
+    setMessages([...messages, data]);
+    fetch("http://127.0.0.1:8060/saveMessage/?sessionid=" + sessionid + "&chatroomID=" + data.chatroom +
+      "&message_sent=" + data.text, {method: "PUT"});
   })
+}, [socket, messages])
 
-  return (received_reply &&
-    <div className="chat">
-      <SelectedChatroomContext.Provider value={[selected_chatroom, set_selected_chatroom]}>
-        <ChatroomListContext.Provider value={chatroom_list}>
-          <ChatBar socket={socket}/>
+useEffect(() => {
+  socket.on("typingResponse", data => setTypingStatus(data))
+}, [socket])
 
-          <div className='chat__main'>
-            <ChatBody messages={messages} typingStatus={typingStatus} lastMessageRef={lastMessageRef}/>
-            <ChatFooter socket={socket}/>
-          </div>
-        </ChatroomListContext.Provider>
+useEffect(() => {
+  // 👇️ scroll to bottom every time messages change
+  lastMessageRef.current?.scrollIntoView({behavior: 'smooth'});
+}, [messages]);
 
-      </SelectedChatroomContext.Provider>
-    </div>
-  )
+
+return (received_reply &&
+  <div className="chat">
+    <SelectedChatroomContext.Provider value={[selected_chatroom, set_selected_chatroom]}>
+      <ChatroomListContext.Provider value={chatroom_list}>
+        <ChatBar socket={socket}/>
+
+        <div className='chat__main'>
+          <ChatBody messages={messages} typingStatus={typingStatus} lastMessageRef={lastMessageRef}/>
+          <ChatFooter socket={socket}/>
+        </div>
+      </ChatroomListContext.Provider>
+
+    </SelectedChatroomContext.Provider>
+  </div>
+)
 }
 
 export default ChatPage

@@ -1,4 +1,4 @@
-import React, {useContext} from 'react'
+import React, {useContext, useEffect, useState} from 'react'
 import {useNavigate} from "react-router-dom"
 import {SelectedChatroomContext, ChatroomListContext} from "@/app/components/ChatContext";
 
@@ -13,10 +13,11 @@ const ChatBody = ({messages, typingStatus, lastMessageRef}) => {
     window.location.reload()
   }
 
+
   return (
     <>
       <header className='chat__mainHeader'>
-        <p className="curr-chatroom-name">{chatroom_list.find((elem)=>elem[0]===selected_chatroom)[1]}</p>
+        <p className="curr-chatroom-name">{chatroom_list.find((elem) => elem[0] === selected_chatroom)[1]}</p>
         <button className='leaveChat__btn' onClick={handleLeaveChat}>LOGOUT</button>
       </header>
 
@@ -25,14 +26,14 @@ const ChatBody = ({messages, typingStatus, lastMessageRef}) => {
         {messages.map(message => (
           message.name === localStorage.getItem("userName") ? (
             <div className="message__chats" key={message.id}>
-              <p className='sender__name'>You</p>
+              <p className='sender__name'>{'You, ' + new Date(message.datetime).toLocaleString()}</p>
               <div className='message__sender'>
                 <p>{message.text}</p>
               </div>
             </div>
           ) : (
             <div className="message__chats" key={message.id}>
-              <p>{message.name}</p>
+              <p>{message.name+ ', ' + new Date(message.datetime).toLocaleString()}</p>
               <div className='message__recipient'>
                 <p>{message.text}</p>
               </div>

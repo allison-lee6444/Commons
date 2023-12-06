@@ -24,7 +24,7 @@ def request_profile(cur, email):
     return False
 
 
-def request_schedule(cur,email):
+def request_schedule(cur, email):
     url = f"http://localhost:8008/getStudentSchedule?email={email}"
     response = requests.get(url)
     if response.status_code == 200:
@@ -49,7 +49,7 @@ def request_schedule(cur,email):
         except Exception as e:
             print(e)
             return False
-        
+
         return True
     else:
         return False
