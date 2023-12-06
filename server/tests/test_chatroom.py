@@ -11,6 +11,22 @@ postgresql_proc = factories.postgresql_proc(
 )
 postgresql = factories.postgresql("postgresql_proc")
 
+def test_triggers(postgresql):
+    cur = postgresql.cursor()
+    cur.execute("INSERT INTO university values('NYU')")
+    cur.execute("INSERT INTO student(email, password, salt, student_id, uni_id) VALUES('a', 'a', 'a', '123', 'NYU')")
+    cur.execute("INSERT INTO course(id, uni_id) VALUES ('CS101', 'NYU')")
+    cur.execute("INSERT INTO section(course_id, uni_id, section_id) VALUES('CS101', 'NYU', 'A')")
+    cur.execute("INSERT INTO takes(student_id, uni_id, course_id, section_id) VALUES('123', 'NYU', 'CS101', 'A')")
+    cur.execute("SELECT student_id FROM in_chatroom")
+    res = cur.fetchall()[0][0]
+    assert (res == 123)
+    cur.execute("SELECT id FROM chatroom WHERE course_id = 'CS101'")
+    res1 = cur.fetchall()[0][0]
+    cur.execute("SELECT chatroom_id FROM in_chatroom")
+    res2 = cur.fetchall()[0][0]
+    assert(res1 == res2)
+
 def test_create_chatroom_func(postgresql):
     cur = postgresql.cursor()
     cur.execute("INSERT INTO student(email, password, salt, student_id) VALUES('a', 'a', 'a', '123')")
@@ -29,6 +45,7 @@ def test_retrieve_messages(postgresql):
     cur = postgresql.cursor()
 
     cur.execute("INSERT INTO student(email, password, salt, student_id) VALUES('a', 'a', 'a', '123')")
+    cur.execute("INSERT INTO student(email, password, salt, student_id) VALUES('b', 'b', 'b', '556')")
     cur.execute("INSERT INTO university values('NYU')")
     chatroom_name = 'a'
     uni_id = 'NYU'
@@ -39,18 +56,35 @@ def test_retrieve_messages(postgresql):
     chatroom_id = cur.fetchall()[0][0]
 
     sender_id = '123'
-    date_time_sent = datetime.datetime.now()
+    #date_time_sent = datetime.datetime.now()
     message_text = 'some_text'
+    sender_2_id = '556'
+    message_2_text = 'hello'
 
     cur.execute("INSERT INTO in_chatroom(student_id, uni_id, chatroom_id) VALUES(%(sender_id)s, %(uni_id)s, %(chatroom_id)s)",
                 {"sender_id" : sender_id, "uni_id" : uni_id, "chatroom_id" : chatroom_id})
+    cur.execute("INSERT INTO in_chatroom(student_id, uni_id, chatroom_id) VALUES(%(sender_id)s, %(uni_id)s, %(chatroom_id)s)",
+                {"sender_id" : sender_2_id, "uni_id" : uni_id, "chatroom_id" : chatroom_id})
 
     cur.execute("INSERT INTO message(sender_id, chatroom_id, message_text, date_time_sent) VALUES(%(sender_id)s, %(chatroom_id)s, %(message_text)s, %(date_time_sent)s)",
-                {"chatroom_id" : chatroom_id, "sender_id" : sender_id, "date_time_sent" : date_time_sent, "message_text" : message_text})
-    
+                {"chatroom_id" : chatroom_id, "sender_id" : sender_id, "date_time_sent" : datetime.datetime.now(), "message_text" : message_text})
+    cur.execute("INSERT INTO message(sender_id, chatroom_id, message_text, date_time_sent) VALUES(%(sender_id)s, %(chatroom_id)s, %(message_text)s, %(date_time_sent)s)",
+                {"chatroom_id" : chatroom_id, "sender_id" : sender_2_id, "date_time_sent" : datetime.datetime.now(), "message_text" : message_2_text})
+    cur.execute("INSERT INTO message(sender_id, chatroom_id, message_text, date_time_sent) VALUES(%(sender_id)s, %(chatroom_id)s, %(message_text)s, %(date_time_sent)s)",
+                {"chatroom_id" : chatroom_id, "sender_id" : sender_2_id, "date_time_sent" : datetime.datetime.now(), "message_text" : message_text})
+
     res = chatroom.retrieve_messages(cur, chatroom_id)
 
-    assert(json.loads(res) != {})
+    x = json.loads(res)
+    assert (x[0]["message_text"] == message_text)
+    #assert(x[2][0][2] == [])
+    #assert(x[1][0][0] == [])
+
+    assert(x[0]["sender_id"] == '123' and x[0]["chatroom_id"] == str(chatroom_id) and x[0]["message_text"] == message_text)
+    assert(x[1]["sender_id"] == '556' and x[1]["chatroom_id"] == str(chatroom_id) and x[1]["message_text"] == message_2_text)
+    assert(x[2]["sender_id"] == '556' and x[2]["chatroom_id"] == str(chatroom_id) and x[2]["message_text"] == message_text)
+    #assert(json.loads(res) == {})
+    
 
     #a = 1
     #assert(a == 1)
