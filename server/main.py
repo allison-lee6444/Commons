@@ -203,7 +203,7 @@ def importStudentSchedule(email):
 def importStudentProfile(email):
     return {"result": request_uni.request_profile(cur, email)}
 
-
+#"""
 @app.post("/verifyIdentity/")
 def verifyIdentity(sessionid):
     email = check_session_id(sessionid)
@@ -222,7 +222,7 @@ def checkVerificationCode(sessionid, token):
         request_uni.request_schedule(cur, email)
         request_uni.request_profile(cur, email)
     return {"result": is_verified}
-
+#"""
 
 @app.post("/createFlashcard/")
 def createFlashcard(chatroom_id, front_text, back_text):
