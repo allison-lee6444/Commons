@@ -96,18 +96,19 @@ def generate_invite(cur, target_user_id, invite_sender_id, chatroom_id, uni_id):
         
         #make sure that the invite sender is actually in the chatroom
         cur.execute("SELECT chatroom_id FROM in_chatroom WHERE student_id = %(invite_sender_id)s", {"invite_sender_id" : invite_sender_id})
-        res = cur.fetchall()[0][0]
+        res = cur.fetchall()#[0][0]
         res = [x[0] for x in res]
         if (chatroom_id not in res):
             raise HTTPException(status_code=500, detail="The sender of the invite is not in the chatroom!")
-
-        #make sure that target_user_id exists in the student database
-        cur.execute("SELECT student_id FROM student WHERE student_id = %(target_user_id)s",
-                    {"target_user_id" : target_user_id})
-        res = cur.fetchall()[0][0]
-        if (res != target_user_id):
-            raise HTTPException(status_code=500, detail="Student not verified!")
         
+        #make sure that target_user_id exists in the student database
+        cur.execute("SELECT student_id FROM student")
+        res = cur.fetchall()
+        res = [str(x[0]) for x in res]
+        if (str(target_user_id) not in res):
+            raise HTTPException(status_code=500, detail="The invitee is not a registered user on our platform!")
+
+
         #make sure that the uni_id of target_user_id matches
         # the paramter uni_id and the uni_id of chatroom_id
 
@@ -119,7 +120,7 @@ def generate_invite(cur, target_user_id, invite_sender_id, chatroom_id, uni_id):
         res = cur.fetchall()[0][0]
         if (res != uni_id):
             raise HTTPException(status_code=500, detail="uni_id mismatch")
-
+        
         #make sure that the chatroom is not a course chatroom
         cur.execute("SELECT course_id FROM chatroom WHERE id = %(chatroom_id)s", {"chatroom_id" : chatroom_id})
         c_id = cur.fetchall()[0][0]
