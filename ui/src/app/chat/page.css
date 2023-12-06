@@ -213,3 +213,15 @@ p {
   font-size: 40px;
   text-align: center;
 }
+
+.menu_button {
+  display: block;
+  background-color: rgb(76, 76, 62);
+  border-radius: 15px;
+  font-size: 20px;
+  text-align: center;
+  width: 100%;
+  margin: 5px;
+  color: white;
+  text-decoration: none;
+}

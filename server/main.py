@@ -241,6 +241,7 @@ def getVerificationStatus(sessionid):
     email = check_session_id(sessionid)
     return profiles.is_verified(cur, email)
 
+
 # Test function to send random data.
 @app.get("/test/")
 def test(data):

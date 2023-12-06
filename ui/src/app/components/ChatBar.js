@@ -1,5 +1,6 @@
 import React, {useState, useEffect, useContext} from 'react'
 import {SelectedChatroomContext, ChatroomListContext} from "./ChatContext";
+import Link from 'next/link';
 
 const ChatBar = ({socket}) => {
   const [users, setUsers] = useState([])
@@ -15,6 +16,11 @@ const ChatBar = ({socket}) => {
   return (
     <div className='chat__sidebar'>
       <h2 className="commons-logo">Commons</h2>
+      <div>
+        <h4 className='chat__header'>MENU</h4>
+        <Link className='menu_button' href="/events">Events</Link>
+        <Link className='menu_button' href="/profile">Profile</Link>
+      </div>
       <div>
         <h4 className='chat__header'>CHATROOMS</h4>
         <div className='chat__users'>
