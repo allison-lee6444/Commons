@@ -1,7 +1,7 @@
 import React, {useState, useEffect, useContext} from 'react'
 import {SelectedChatroomContext, ChatroomListContext} from "./ChatContext";
 // My attempt - redirect.
-import {useNavigate} from 'react-router-dom';
+import Link from 'next/link';
 // My attempt - redirect.
 
 const ChatBar = ({socket}) => {
@@ -13,26 +13,16 @@ const ChatBar = ({socket}) => {
     socket.on("newUserResponse", data => setUsers(data))
   }, [socket, users])
 
-  // My attempt - redirect.
-  const navigate = useNavigate();
-  const eventClick = () => {
-    navigate('/events');
-  }
-  const profileClick = () => {
-    navigate('/profile');
-  }
-  // My attempt - redirect.
-
   return (
     <div className='chat__sidebar'>
       <h2 className="commons-logo">Commons</h2>
-      {/* My Attempt */}
+      {/* My Attempt - Redirect */}
       <div>
         <h4 className='chat__header'>MENU</h4>
-        <button type="button" className='menu_button' onClick={eventClick}>Events</button>
-        <button type="button" className='menu_button'onClick={profileClick}>Profile</button>
+        <Link className='menu_button' href="/events">Events</Link>
+        <Link className='menu_button' href="/profile">Profile</Link>
       </div>
-      {/* My Attempt */}
+      {/* My Attempt - Redirect */}
       <div>
         <h4 className='chat__header'>CHATROOMS</h4>
         <div className='chat__users'>

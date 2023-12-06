@@ -207,6 +207,7 @@ p {
 
 /* My Attempt */
 .menu_button {
+  display: block;
   background-color: rgb(76, 76, 62);
   border-radius: 15px;
   font-size: 20px;
@@ -214,6 +215,7 @@ p {
   width: 100%;
   margin: 5px;
   color: white;
+  text-decoration: none;
 }
 /* My Attempt */
 
