@@ -160,14 +160,15 @@ def accept_invite(cur, invite_id, target_user_id):
             raise HTTPException(status_code=500, detail="The invite is not for this user")
 
         
-        cur.execute("SELECT id FROM chatroom WHERE invite_id = %(invite_id)s", {"invite_id" : invite_id})
+        #cur.execute("SELECT id FROM chatroom WHERE invite_id = %(invite_id)s", {"invite_id" : invite_id})
+        cur.execute("SELECT chatroom_id FROM invite WHERE invite_id=%(invite_id)s", {"invite_id" : invite_id})
         chatroom_id = cur.fetchall()[0][0]
         
         #do not allow insertion of user into in_chatroom if uni_id for target user and chatroom do not match
         cur.execute("SELECT uni_id FROM chatroom WHERE id = %(chatroom_id)s", {"chatroom_id" : chatroom_id})
         uni_id = cur.fetchall()[0][0]
         cur.execute("SELECT uni_id FROM student WHERE student_id = %(target_user_id)s", {"target_user_id" : target_user_id})
-    
+        
         student_uni_id = cur.fetchall()[0][0]
         
         if (student_uni_id != uni_id):
@@ -178,6 +179,7 @@ def accept_invite(cur, invite_id, target_user_id):
                     {"target_user_id" : target_user_id, "uni_id" : uni_id, "chatroom_id" : chatroom_id})
         
         return True
+    
     except BaseException as e:
         print(f'Exception: {e}')
         raise HTTPException(
