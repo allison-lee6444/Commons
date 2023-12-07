@@ -5,7 +5,10 @@ import './event.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import {getCookie} from "@/app/utils"
 
-function Event() {
+function Event({ params }) {
+  const event_id = params.event_id;
+  console.log(event_id);
+  
   const API_KEY = process.env.NEXT_PUBLIC_API_KEY;
   const [errorMessages, setErrorMessages] = useState({});
   const [received_reply, set_received_reply] = useState(false);

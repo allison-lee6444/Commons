@@ -14,7 +14,10 @@ import {
 } from "react-geocode";
 import {getCookie} from "@/app/utils";
 
-function EditEvent() {
+function EditEvent({ params }) {
+  const event_id = params.event_id;
+  console.log(event_id);
+
   const API_KEY = process.env.NEXT_PUBLIC_API_KEY;
   const [errorMessages, setErrorMessages] = useState({});
   const [received_reply, set_received_reply] = useState(false);
