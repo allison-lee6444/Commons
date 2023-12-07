@@ -78,8 +78,6 @@ CREATE TABLE IF NOT EXISTS chatroom(
     chatroom_name varchar(255) NOT NULL,
     uni_id varchar(255) NOT NULL,
     course_id varchar(255),
-    invite_id varchar(10), -- random string of length 10 characters
-    --only non-course chatrooms will have invite_ids, because students will get added automatically to course chatrooms
     primary key(id),
     foreign key(uni_id) REFERENCES university(id) ON DELETE CASCADE  
 );

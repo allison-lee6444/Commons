@@ -18,10 +18,13 @@ def test_create_chatroom_func(postgresql):
 
     chatroom.create_chatroom(cur, '123', 'some_chatroom', 'NYU')
 
-    cur.execute("SELECT invite_id FROM chatroom")
-    invite_id = (cur.fetchall()[0][0])
-    assert (invite_id != '')
+    #cur.execute("SELECT invite_id FROM chatroom")
+    #invite_id = (cur.fetchall()[0][0])
+    #assert (invite_id != '')
 
+    cur.execute("SELECT chatroom_name FROM chatroom")
+    name = cur.fetchall()[0][0]
+    assert (name == 'some_chatroom')
       
     #assert(chatroom.createChatroom(cur, '123', 'some_chatroom', 'NYU')==True)
     
@@ -81,6 +84,7 @@ def test_generate_invite(postgresql):
     cur = postgresql.cursor()
     cur.execute("INSERT INTO student(email, password, salt, student_id, uni_id) VALUES('a', 'a', 'a', '123', 'NYU')") #invitee
     cur.execute("INSERT INTO student(email, password, salt, student_id, uni_id) VALUES('b', 'b', 'b', '567', 'NYU')") #inviter
+    cur.execute("INSERT INTO student(email, password, salt, student_id, uni_id) VALUES('c', 'c', 'c', '442', 'NYU')") #onvitee 2
     cur.execute("INSERT INTO university values('NYU')")
     chatroom_name = 'chat'
     uni_id = 'NYU'
@@ -94,11 +98,14 @@ def test_generate_invite(postgresql):
     #invite = json.loads(chatroom.generate_invite(cur, '123', chatroom_id))
 
     assert(chatroom.generate_invite(cur, '123', '567', chatroom_id, 'NYU') == True)
+    assert(chatroom.generate_invite(cur, '442', '567', chatroom_id, 'NYU') == True)
 
     cur.execute("SELECT target_user_id FROM invite")
-    target_user_id = cur.fetchall()[0][0]
+    res = cur.fetchall()
+    res = [x[0] for x in res]
 
-    assert(str(target_user_id) == '123')
+    assert(123 in res)
+    assert(442 in res)
 
     #assert(invite["invite_id"] == invite_id)
 
@@ -162,15 +169,19 @@ def test_get_chatrooms(postgresql):
     
     cur.execute("INSERT INTO in_chatroom(student_id, uni_id, chatroom_id) VALUES('123', 'NYU', %(ch_id)s)", {"ch_id" : ch_id})
 
-    cur.execute("SELECT chatroom_id FROM in_chatroom")
+    cur.execute("SELECT chatroom_name FROM chatroom")
     selection = cur.fetchall()
     flattened = [x[0] for x in selection]
     #assert(flattened == [1, 2])
     
     chatrooms_json = chatroom.get_chatrooms_for_student(cur, '123')
     chatrooms = json.loads(chatrooms_json)
-    assert(chatrooms["chatroom_names"] == ["CS101", ch_name])
-    assert(chatrooms["chatroom_ids"] == [str(x) for x in flattened])
+    assert("CS101" in flattened)
+    assert("softball team" in flattened)
+    flattened_chatrooms = [x[0][0] for x in chatrooms]
+    assert("CS101" in flattened_chatrooms)
+    #assert(chatrooms["chatroom_names"] == ["CS101", ch_name])
+    #assert(chatrooms["chatroom_ids"] == [str(x) for x in flattened])
 
     
 

@@ -56,14 +56,12 @@ def save_message(cur, sender_id, chatroomID, message_sent):
 
 # Create non-course chatroom
 def create_chatroom(cur, user_id, chatroom_name, uni_id):
-    try:
-        # Generate invite id
-        invite_id = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
+    try: 
+        cur.execute("INSERT INTO chatroom(chatroom_name, uni_id) VALUES(%(chatroom_name)s, %(uni_id)s)", {"chatroom_name" : chatroom_name, "uni_id" : uni_id})
         
-        cur.execute("INSERT INTO chatroom(chatroom_name, uni_id, invite_id) VALUES(%(chatroom_name)s, %(uni_id)s, %(invite_id)s)", {"chatroom_name" : chatroom_name, "uni_id" : uni_id, "invite_id" : invite_id})
-        
-        cur.execute("SELECT id FROM chatroom where chatroom_name = %(chatroom_name)s   AND uni_id = %(uni_id)s", {"chatroom_name" : chatroom_name, "uni_id" : uni_id})
-        
+        #cur.execute("SELECT id FROM chatroom where chatroom_name = %(chatroom_name)s   AND uni_id = %(uni_id)s", {"chatroom_name" : chatroom_name, "uni_id" : uni_id})
+        cur.execute("SELECT count(*) FROM chatroom")
+
         chatroom_id = cur.fetchall()[0][0]
         
         cur.execute(
@@ -84,6 +82,18 @@ def generate_invite(cur, target_user_id, invite_sender_id, chatroom_id, uni_id):
 
         #Generate invite id
         invite_id = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
+
+        #Check to make sure that the invite_id doesn't already exist in the db
+        cur.execute("SELECT invite_id FROM invite")
+        res = cur.fetchall()
+        res = [x[0] for x in res]
+        #keep regenerating the invite id until you get something that doesn't exist in the db
+        while (invite_id in res):
+            invite_id = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
+            cur.execute("SELECT invite_id FROM invite")
+            res = cur.fetchall()
+            res = [x[0] for x in res]
+
         
         #make sure that the university actually exists in the database
         cur.execute("SELECT id FROM university where id = %(uni_id)s", {"uni_id" : uni_id})
@@ -146,12 +156,6 @@ def generate_invite(cur, target_user_id, invite_sender_id, chatroom_id, uni_id):
 #Accept an invite and join a (non-course) chatroom
 def accept_invite(cur, invite_id, target_user_id):
     try:
-        #make sure the target user is verified
-        cur.execute("SELECT student_id FROM student WHERE student_id = %(target_user_id)s",
-                    {"target_user_id" : target_user_id})
-        res = cur.fetchall()[0][0]
-        if (res != target_user_id):
-            raise HTTPException(status_code=500, detail="Student not verified!")
         
         #get target user of invite, check to see if it matches target_user_id parameter
         cur.execute("SELECT target_user_id FROM invite WHERE invite_id=%(invite_id)s", {"invite_id" : invite_id})
@@ -198,10 +202,11 @@ def get_chatrooms_for_student(cur, student_id):
                      {"student_id" : student_id})
         #cur.execute("SELECT chatroom_name FROM chatroom")
         res = cur.fetchall()
-        chatroom_names = [x[0][0] for x in res]
-        chatroom_ids = [x[0][1] for x in res]
-        chatrooms = {"chatroom_names" : chatroom_names, "chatroom_ids" : chatroom_ids}
-        return(json.dumps(chatrooms))
+        return(json.dumps(res))
+        #chatroom_names = [x[0][0] for x in res]
+        #chatroom_ids = [x[0][1] for x in res]
+        #chatrooms = {"chatroom_names" : chatroom_names, "chatroom_ids" : chatroom_ids}
+        #return(json.dumps(chatrooms))
     except BaseException as e:
         print(f'Exception: {e}')
         raise HTTPException(
