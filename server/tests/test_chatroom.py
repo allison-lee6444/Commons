@@ -35,19 +35,19 @@ def test_retrieveMessages(postgresql):
     cur = postgresql.cursor()
     make_db(cur)
     # start
-    assert chatroom.retrieve_messages(cur, 1) == '[[123456, 1, "THIS IS A TEST MESSAGE!", "2023-11-13T10:00:00", "A", "Bb", "abc123@nyu.edu"]]'
+    assert chatroom.retrieveMessages(cur, 1) == '[[123456, 1, "THIS IS A TEST MESSAGE!", "2023-11-13T10:00:00", "A", "Bb", "abc123@nyu.edu"]]'
 
 
 def test_saveMessage(postgresql):
     cur = postgresql.cursor()
     make_db(cur)
-    assert chatroom.save_message(cur, 123456, 1, "Hello pytest!") == True
+    assert chatroom.saveMessage(cur, 123456, 1, "Hello pytest!") == True
 
 
 def test_createChatroom(postgresql):
     cur = postgresql.cursor()
     make_db(cur)
-    assert chatroom.create_chatroom(cur, 123456, "Comp Sci Club", 'NYU') == True
+    assert chatroom.createChatroom(cur, 123456, "Comp Sci Club", 'NYU') == True
 
 
 def test_getChatrooms(postgresql):
