@@ -243,16 +243,24 @@ def generateInviteForStudent(target_user_id, chatroom_id):
     return {"result": chatroom.generate_invite(cur, target_user_id, chatroom_id)}
 
 @app.post("/acceptInvite")
-def acceptInvite(invite_object, target_user_id):
-    return {"result":chatroom.accept_invite(cur, invite_object, target_user_id)}
+def acceptInvite(invite_id, session_id):
+    email = check_session_id(session_id)
+    cur.execute("SELECT student_id FROM student WHERE email=%(email)s", {"email" : email})
+    target_user_id = cur.fetchall()[0][0]
+    return {"result":chatroom.accept_invite(cur, invite_id, target_user_id)}
 
 @app.put("/createChatroom")
-def createChatroom(user_id, chatroom_name, uni_id):
+def createChatroom(session_id, chatroom_name):
+    email = check_session_id(session_id)
+    cur.execute("SELECT student_id FROM student WHERE email=%(email)s", {"email" : email})
+    user_id = cur.fetchall()[0][0]
+    cur.execute("SELECT uni_id FROM student WHERE email=%(email)s", {"email" : email})
+    uni_id = cur.fetchall()[0][0]
     return {"result" : chatroom.create_chatroom(cur, user_id, chatroom_name, uni_id)}
 
 @app.get("/getChatroomsForStudent")
-def getChatroomsForStudent(student_id):
-    return {"result" : chatroom.get_chatrooms_for_student(cur, student_id)}
+def getChatroomsForStudent(student_id, uni_id):
+    return {"result" : chatroom.getChatrooms(cur, student_id, uni_id)}
 
 
 # Method called to get a student's verification status.
