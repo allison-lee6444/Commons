@@ -2,7 +2,7 @@ from server.utility import fetch_catalog_utility
 from pytest_postgresql import factories
 
 postgresql_proc = factories.postgresql_proc(
-    load=["database/create_tables.sql"],port=9100
+    load=["database/create_tables.sql", "university_server/create_tables.sql"],port=9100
 )
 postgresql = factories.postgresql("postgresql_proc")
 

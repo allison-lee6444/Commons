@@ -169,19 +169,8 @@ def test_get_chatrooms(postgresql):
     
     cur.execute("INSERT INTO in_chatroom(student_id, uni_id, chatroom_id) VALUES('123', 'NYU', %(ch_id)s)", {"ch_id" : ch_id})
 
-    cur.execute("SELECT chatroom_name FROM chatroom")
-    selection = cur.fetchall()
-    flattened = [x[0] for x in selection]
-    #assert(flattened == [1, 2])
-    
-    chatrooms_json = chatroom.get_chatrooms_for_student(cur, '123')
-    chatrooms = json.loads(chatrooms_json)
-    assert("CS101" in flattened)
-    assert("softball team" in flattened)
-    flattened_chatrooms = [x[0][0] for x in chatrooms]
-    assert("CS101" in flattened_chatrooms)
-    #assert(chatrooms["chatroom_names"] == ["CS101", ch_name])
-    #assert(chatrooms["chatroom_ids"] == [str(x) for x in flattened])
+    res = chatroom.getChatrooms(cur, '123', 'NYU')
+    assert(res["chatrooms"] == [(1, 'CS101'), (2, 'softball team')])
 
     
 
