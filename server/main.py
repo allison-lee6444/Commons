@@ -239,8 +239,11 @@ def getAllFlashcards(chatroom_id):
     return {"result": flashcard.getFlashcards(cur, chatroom_id)}
 
 @app.get("/generateInvite")
-def generateInviteForStudent(target_user_id, chatroom_id):
-    return {"result": chatroom.generate_invite(cur, target_user_id, chatroom_id)}
+def generateInvite(session_id, target_user_email, chatroom_id):
+    email = check_session_id(session_id)
+    sender_id, uni_id = profiles.get_student_uni_id(cur, email)
+    target_user_id, uni_id = profiles.get_student_uni_id(cur, target_user_email)
+    return {"result": chatroom.generate_invite(cur, target_user_id, sender_id, chatroom_id, uni_id)}
 
 @app.post("/acceptInvite")
 def acceptInvite(invite_id, session_id):

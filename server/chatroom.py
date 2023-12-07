@@ -122,15 +122,6 @@ def generate_invite(cur, target_user_id, invite_sender_id, chatroom_id, uni_id):
             detail="Database error",
         )
         
-        #make sure that the chatroom is not a course chatroom
-        cur.execute("SELECT course_id FROM chatroom WHERE id = %(chatroom_id)s", {"chatroom_id" : chatroom_id})
-        c_id = cur.fetchall()[0][0]
-        if (c_id != None):
-            raise HTTPException(
-            status_code=500,
-            detail="Creating an invite for a course chatroom is not allowed",
-        )
-        
         cur.execute("INSERT INTO invite values(%(invite_id)s, %(chatroom_id)s, %(invite_sender_id)s, %(target_user_id)s, %(uni_id)s)",
                     {"invite_id" : invite_id, "chatroom_id" : chatroom_id, "invite_sender_id" : invite_sender_id, "target_user_id" : target_user_id, "uni_id" : uni_id})
         
@@ -148,35 +139,16 @@ def generate_invite(cur, target_user_id, invite_sender_id, chatroom_id, uni_id):
 def accept_invite(cur, invite_id, target_user_id):
     try:
         
-        #get target user of invite, check to see if it matches target_user_id parameter
-        """
-        cur.execute("SELECT target_user_id FROM invite WHERE invite_id=%(invite_id)s", {"invite_id" : invite_id})
-        res = cur.fetchall()[0][0]
-        if (res != target_user_id):
-            raise HTTPException(status_code=500, detail="The invite is not for this user")
-        """
-        
-        #cur.execute("SELECT id FROM chatroom WHERE invite_id = %(invite_id)s", {"invite_id" : invite_id})
-        #cur.execute("SELECT chatroom_id FROM invite WHERE invite_id=%(invite_id)s", {"invite_id" : invite_id})
-        cur.execute("SELECT invite.chatroom_id FROM chatroom JOIN invite on chatroom.id = invite.chatroom_id WHERE invite_id = %(invite_id)s AND target_user_id=%(target_user_id)s",
+        cur.execute("""SELECT i.chatroom_id FROM invite i JOIN (chatroom c JOIN student s on c.uni_id = s.uni_id) 
+                    on i.chatroom_id = c.id WHERE invite_id = %(invite_id)s AND target_user_id = %(target_user_id)s""", 
                     {"invite_id" : invite_id, "target_user_id" : target_user_id})
         chatroom_id = cur.fetchall()[0][0]
-        if (chatroom_id == None or chatroom_id == [] or chatroom_id == ''):
-            raise HTTPException(status_code=500, detail="either the chatroom does not exist or this invite is for a different user")
+        if (chatroom_id == None or chatroom_id == []):
+            raise HTTPException(
+            status_code=500,
+            detail="Database error",
+        )
 
-        
-
-        #do not allow insertion of user into in_chatroom if uni_id for target user and chatroom do not match
-        #cur.execute("SELECT uni_id FROM chatroom WHERE id = %(chatroom_id)s", {"chatroom_id" : chatroom_id})
-        #uni_id = cur.fetchall()[0][0]
-        #cur.execute("SELECT uni_id FROM student WHERE student_id = %(target_user_id)s", {"target_user_id" : target_user_id})
-        
-        cur.execute("SELECT chatroom_id FROM student JOIN invite on student.uni_id = (SELECT uni_id FROM chatroom WHERE chatroom.id = invite.chatroom_id)")
-        student_chrm_id = cur.fetchall()[0][0]
-        
-        if (student_chrm_id != chatroom_id): #uni_id):
-            raise HTTPException(status_code=500, detail="The university of the invitee does not match the university of the chatroom")
-        
         #insert target user into in_chatroom
         cur.execute("INSERT INTO in_chatroom(student_id, uni_id, chatroom_id) VALUES(%(target_user_id)s, (SELECT uni_id FROM chatroom WHERE id = %(chatroom_id)s), %(chatroom_id)s)",
                     {"target_user_id" : target_user_id, "chatroom_id" : chatroom_id})
