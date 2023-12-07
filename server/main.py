@@ -217,7 +217,6 @@ def importStudentSchedule(email):
 def importStudentProfile(email):
     return {"result": request_uni.request_profile(cur, email)}
 
-
 @app.post("/verifyIdentity/")
 def verifyIdentity(sessionid):
     email = check_session_id(sessionid)
