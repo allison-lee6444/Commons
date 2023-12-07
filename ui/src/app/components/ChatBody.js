@@ -4,7 +4,7 @@ import {SelectedChatroomContext, ChatroomListContext} from "@/app/components/Cha
 
 const ChatBody = ({messages, typingStatus, lastMessageRef}) => {
   const navigate = useNavigate()
-  const [selected_chatroom, _] = useContext(SelectedChatroomContext);
+  const [selected_chatroom, a, name] = useContext(SelectedChatroomContext);
   const chatroom_list = useContext(ChatroomListContext);
 
   const handleLeaveChat = () => {
@@ -17,14 +17,14 @@ const ChatBody = ({messages, typingStatus, lastMessageRef}) => {
   return (
     <>
       <header className='chat__mainHeader'>
-        <p className="curr-chatroom-name">{chatroom_list.find((elem) => elem[0] === selected_chatroom)[1]}</p>
+        <p className="curr-chatroom-name">{name}</p>
         <button className='leaveChat__btn' onClick={handleLeaveChat}>LOGOUT</button>
       </header>
 
 
       <div className='message__container'>
         {messages.map(message => (
-          message.name === localStorage.getItem("userName") ? (
+          message.username === localStorage.getItem("userName") ? (
             <div className="message__chats" key={message.id}>
               <p className='sender__name'>{'You, ' + new Date(message.datetime).toLocaleString()}</p>
               <div className='message__sender'>
