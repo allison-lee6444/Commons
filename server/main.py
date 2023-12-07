@@ -1,3 +1,4 @@
+import asyncio
 import secrets
 
 from fastapi import FastAPI, HTTPException
@@ -7,8 +8,8 @@ import authentication
 import chatroom
 import events
 import profiles
-import import_schedules
-import verify_identity
+import request_uni
+import verification
 import flashcard
 from cursor import cur
 
@@ -111,6 +112,13 @@ def newMessages(chatroomID, dateTime):
     return chatroom.get_msg_update(cur, chatroomID, dateTime)
 
 
+@app.get("/getChatroom/")
+def getChatroom(sessionid):
+    email = check_session_id(sessionid)
+    student_id, uni_id = profiles.get_student_uni_id(cur, email)
+    return chatroom.getChatrooms(cur, student_id, uni_id)
+
+
 # Method to create a new event and save it in the DB.
 @app.post("/editEvent/")
 def editEvent(sessionid, chatroomID, eventName, description, locName, locCoord, startTime, endTime):
@@ -168,29 +176,53 @@ def getCourses(sessionid):
 
 # Method called to help a student identify if joining an event will create a time conflict.
 @app.get("/hasConflict/")
-def hasConflict(startTime, endTime, studentID):
-    return {"result": events.has_conflict(cur, startTime, endTime, studentID)}
+def hasConflict(sessionid, startTime, endTime):
+    email = check_session_id(sessionid)
+    student_id, _ = profiles.get_student_uni_id(cur, email)
+    return {"result": events.has_conflict(cur, startTime, endTime, student_id)}
 
 
 @app.put("/saveMessage/")
-def saveMessage(sender_id, chatroomID, message_sent):
-    return {"result": chatroom.save_message(cur, sender_id, chatroomID, message_sent)}
+def saveMessage(sessionid, chatroomID, message_sent):
+    email = check_session_id(sessionid)
+    student_id, _ = profiles.get_student_uni_id(cur, email)
+    return {"result": chatroom.saveMessage(cur, student_id, chatroomID, message_sent)}
 
 
 @app.get("/retrieveMessages/")
-def retrieveMessages(chatroom_id):
-    return {"result": chatroom.retrieve_messages(cur, chatroom_id)}
+def retrieveMessages(chatroomID):
+    return {"result": chatroom.retrieveMessages(cur, chatroomID)}
 
 
-@app.post("/ImportStudentSchedule/")
-def importSchedule(values):
-    return {"result": import_schedules.ImportStudentSchedule(cur, values)}
+@app.get("/importStudentSchedule/")
+def importStudentSchedule(email):
+    return {"result": request_uni.request_schedule(cur, email)}
 
 
+@app.get("/importStudentProfile/")
+def importStudentProfile(email):
+    return {"result": request_uni.request_profile(cur, email)}
+
+#"""
 @app.post("/verifyIdentity/")
-def verifyIdentity(student_id, uni_id, email, fname, lname, graduation_year):
-    return {"result": verify_identity.verifyIdentity(cur, student_id, uni_id, email, fname, lname, graduation_year)}
+def verifyIdentity(sessionid):
+    email = check_session_id(sessionid)
+    if getVerificationStatus(sessionid)['verified']:
+        return {'result': False}
+    return {"result": asyncio.run(verification.start_verify(email))}
 
+
+@app.get("/checkVerificationCode/")
+def checkVerificationCode(sessionid, token):
+    if getVerificationStatus(sessionid)['verified']:
+        return {'result': False}
+    email = check_session_id(sessionid)
+    is_verified = verification.check_token(email, token)
+    if is_verified:
+        request_uni.request_schedule(cur, email)
+        request_uni.request_profile(cur, email)
+    return {"result": is_verified}
+#"""
 
 @app.post("/createFlashcard/")
 def createFlashcard(chatroom_id, front_text, back_text):
@@ -222,3 +254,18 @@ def createChatroom(user_id, chatroom_name, uni_id):
 def getChatroomsForStudent(student_id):
     return {"result" : chatroom.get_chatrooms_for_student(cur, student_id)}
 
+
+# Method called to get a student's verification status.
+@app.get("/getVerificationStatus/")
+def getVerificationStatus(sessionid):
+    email = check_session_id(sessionid)
+    return profiles.is_verified(cur, email)
+
+
+# Test function to send random data.
+@app.get("/test/")
+def test(data):
+    print(data)
+    if int(data) % 2 == 0:
+        return {"result": True}
+    return {"result": False}

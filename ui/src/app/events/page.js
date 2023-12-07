@@ -74,7 +74,7 @@ function Events() {
         <div className="main-body">
           <nav aria-label="breadcrumb" className="main-breadcrumb">
             <ol className="breadcrumb">
-              <li className="breadcrumb-item"><a href="/chatroom">Chatroom</a></li>
+              <li className="breadcrumb-item"><a href="/chat">Chatroom</a></li>
               <li className="breadcrumb-item active" aria-current="page">Events</li>
             </ol>
           </nav>

@@ -1,5 +1,4 @@
 import json
-
 from fastapi import HTTPException
 import datetime
 
@@ -7,12 +6,18 @@ import string
 import random
 
 
+
+def serialize_datetime(obj):
+    if isinstance(obj, datetime.datetime):
+        return obj.isoformat()
+
+
 # Check if a specific chatroom has had any new messages since the provided time.
 def get_msg_update(cur, chatroom_id, date_time):
     try:
         cur.execute("SELECT * FROM message WHERE chatroom_id = %(chatroom_id)s and date_time_sent > %(date_time)s",
                     {"chatroom_id": chatroom_id, "date_time": date_time})
-        result = json.dumps(cur.fetchall())
+        result = json.dumps(cur.fetchall(), default=serialize_datetime)
         return result
     except BaseException as e:
         print(f'Exception: {e}')
@@ -28,13 +33,15 @@ def retrieve_messages(cur, chatroom_id):
         cur.execute("SELECT (sender_id, email, fname, lname, chatroom_id, message_text, cast(date_time_sent as text)) FROM message JOIN student ON student_id = sender_id WHERE chatroom_id= %(chatroom_id)s",
                      {"chatroom_id": chatroom_id})
         result = json.dumps(cur.fetchall())
-        return result
+        
     except BaseException as e:
         print(f'Exception: {e}')
         raise HTTPException(
             status_code=500,
             detail="Database Error",
         )
+    cur.execute("COMMIT")
+    return result
 
 
 # Save message functionality
@@ -45,6 +52,7 @@ def save_message(cur, sender_id, chatroomID, message_sent):
             "INSERT INTO message(sender_id, chatroom_id, message_text, date_time_sent) VALUES(%(sender_id)s, %(chatroomID)s, %(message_sent)s, %(date_time_sent)s)",
             {"sender_id": sender_id, "chatroomID": chatroomID, "message_sent": message_sent,
              "date_time_sent": date_time_sent})
+        cur.execute("COMMIT")
         return True
     except BaseException as e:
         print(f'Exception: {e}')
@@ -67,7 +75,7 @@ def create_chatroom(cur, user_id, chatroom_name, uni_id):
         cur.execute(
             "INSERT INTO in_chatroom(student_id, uni_id, chatroom_id) VALUES(%(user_id)s, %(uni_id)s, %(chatroom_id)s)",
             {"user_id": user_id, "uni_id": uni_id, "chatroom_id": chatroom_id})
-        
+        cur.execute("COMMIT")
         return True
     except BaseException as e:
         print(f'Exception: {e}')
@@ -143,7 +151,7 @@ def generate_invite(cur, target_user_id, invite_sender_id, chatroom_id, uni_id):
         cur.execute("INSERT INTO invite values(%(invite_id)s, %(chatroom_id)s, %(invite_sender_id)s, %(target_user_id)s, %(uni_id)s)",
                     {"invite_id" : invite_id, "chatroom_id" : chatroom_id, "invite_sender_id" : invite_sender_id, "target_user_id" : target_user_id, "uni_id" : uni_id})
         
-
+        
         return True
 
     except BaseException as e:
@@ -183,7 +191,6 @@ def accept_invite(cur, invite_id, target_user_id):
                     {"target_user_id" : target_user_id, "uni_id" : uni_id, "chatroom_id" : chatroom_id})
         
         return True
-    
     except BaseException as e:
         print(f'Exception: {e}')
         raise HTTPException(
@@ -191,22 +198,17 @@ def accept_invite(cur, invite_id, target_user_id):
             detail="Database Error",
         )
 
-# Get the list of chatrooms that a student is in (for visibility of chatrooms functionality)
-def get_chatrooms_for_student(cur, student_id):
+
+def getChatrooms(cur, student_id, uni_id):
     try:
-        """
-        cur.execute("SELECT chatroom_name FROM (in_chatroom JOIN chatroom ON chatroom_id = id) WHERE student_id = %(student_id)s",
-                     {"student_id" : student_id})
-        """
-        cur.execute("SELECT (chatroom_name, chatroom.id) FROM (in_chatroom JOIN chatroom ON chatroom_id = id) WHERE student_id = %(student_id)s",
-                     {"student_id" : student_id})
-        #cur.execute("SELECT chatroom_name FROM chatroom")
-        res = cur.fetchall()
-        return(json.dumps(res))
-        #chatroom_names = [x[0][0] for x in res]
-        #chatroom_ids = [x[0][1] for x in res]
-        #chatrooms = {"chatroom_names" : chatroom_names, "chatroom_ids" : chatroom_ids}
-        #return(json.dumps(chatrooms))
+        cur.execute(
+            "SELECT chatroom.id,chatroom.chatroom_name FROM in_chatroom LEFT JOIN chatroom ON "
+            "in_chatroom.chatroom_id = chatroom.id WHERE in_chatroom.student_id = %(student_id)s AND "
+            "in_chatroom.uni_id = %(uni_id)s",
+            {'student_id': student_id, 'uni_id': uni_id}
+        )
+        result = cur.fetchall()
+        return {"chatrooms": result}
     except BaseException as e:
         print(f'Exception: {e}')
         raise HTTPException(
