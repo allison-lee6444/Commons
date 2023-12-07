@@ -12,6 +12,11 @@ def serialize_datetime(obj):
         return obj.isoformat()
 
 
+def serialize_datetime(obj):
+    if isinstance(obj, datetime.datetime):
+        return obj.isoformat()
+
+
 # Check if a specific chatroom has had any new messages since the provided time.
 def get_msg_update(cur, chatroom_id, date_time):
     try:
@@ -28,12 +33,13 @@ def get_msg_update(cur, chatroom_id, date_time):
 
 
 # Retrieve message functionality
+
 def retrieve_messages(cur, chatroom_id):
     try:
         cur.execute("SELECT (sender_id, email, fname, lname, chatroom_id, message_text, cast(date_time_sent as text)) FROM message JOIN student ON student_id = sender_id WHERE chatroom_id= %(chatroom_id)s",
                      {"chatroom_id": chatroom_id})
         result = json.dumps(cur.fetchall())
-        
+
     except BaseException as e:
         print(f'Exception: {e}')
         raise HTTPException(
@@ -83,6 +89,7 @@ def create_chatroom(cur, user_id, chatroom_name, uni_id):
             status_code=500,
             detail="Database Error",
         )
+
     
 #Generate invite link for student (for non-course chatroom)
 def generate_invite(cur, target_user_id, invite_sender_id, chatroom_id, uni_id):
@@ -160,6 +167,7 @@ def accept_invite(cur, invite_id, target_user_id):
             status_code=500,
             detail="Database Error",
         )
+
 
 
 def getChatrooms(cur, student_id, uni_id):
