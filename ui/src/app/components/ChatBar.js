@@ -3,7 +3,7 @@ import {SelectedChatroomContext, ChatroomListContext} from "./ChatContext";
 
 const ChatBar = ({socket}) => {
   const [users, setUsers] = useState([])
-  const [selected_chatroom, set_selected_chatroom] = useContext(SelectedChatroomContext);
+  const [selected_chatroom, set_selected_chatroom, a] = useContext(SelectedChatroomContext);
   const chatroom_list = useContext(ChatroomListContext);
 
 

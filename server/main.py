@@ -1,4 +1,5 @@
 import asyncio
+import datetime
 import secrets
 
 from fastapi import FastAPI, HTTPException
@@ -24,6 +25,8 @@ app.add_middleware(
 )
 
 sessions = {}
+processed_msgs = {}
+name_cache = {}
 
 
 def check_session_id(id):
@@ -31,6 +34,13 @@ def check_session_id(id):
         return sessions[id]
     else:
         return None
+
+
+def cleanup_processed_msgs():
+    now = datetime.datetime.now()
+    for k, v in processed_msgs.items():
+        if v - now > datetime.timedelta(seconds=10):
+            del processed_msgs[k]
 
 
 # Method to handle user authentication requests.
@@ -183,9 +193,13 @@ def hasConflict(sessionid, startTime, endTime):
 
 
 @app.put("/saveMessage/")
-def saveMessage(sessionid, chatroomID, message_sent):
+def saveMessage(sessionid, chatroomID, message_sent, message_id):
     email = check_session_id(sessionid)
     student_id, _ = profiles.get_student_uni_id(cur, email)
+    if message_id in processed_msgs:  # idempotency protection
+        return {"result": False}
+    processed_msgs[message_id] = datetime.datetime.now()
+    cleanup_processed_msgs()
     return {"result": chatroom.saveMessage(cur, student_id, chatroomID, message_sent)}
 
 
@@ -203,7 +217,7 @@ def importStudentSchedule(email):
 def importStudentProfile(email):
     return {"result": request_uni.request_profile(cur, email)}
 
-#"""
+
 @app.post("/verifyIdentity/")
 def verifyIdentity(sessionid):
     email = check_session_id(sessionid)
@@ -222,7 +236,16 @@ def checkVerificationCode(sessionid, token):
         request_uni.request_schedule(cur, email)
         request_uni.request_profile(cur, email)
     return {"result": is_verified}
-#"""
+
+
+@app.get("/getName/")
+def getName(email):
+    if email in name_cache:
+        return name_cache[email]
+    name = profiles.get_profile(cur, email)['result'][0][-2:]
+    name_cache[email] = name
+    return name
+
 
 @app.get("/checkVerificationCode/")
 def checkVerificationCode(sessionid, token):
