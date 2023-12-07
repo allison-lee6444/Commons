@@ -25,7 +25,7 @@ app.add_middleware(
 )
 
 sessions = {}
-processed_msgs = {}
+processed_requests = {'saveMessage': {}, 'createChatroom': {}}
 name_cache = {}
 
 
@@ -36,11 +36,11 @@ def check_session_id(id):
         return None
 
 
-def cleanup_processed_msgs():
+def cleanup_processed_requests(req):
     now = datetime.datetime.now()
-    for k, v in processed_msgs.items():
+    for k, v in req.items():
         if v - now > datetime.timedelta(seconds=10):
-            del processed_msgs[k]
+            del req[k]
 
 
 # Method to handle user authentication requests.
@@ -196,10 +196,10 @@ def hasConflict(sessionid, startTime, endTime):
 def saveMessage(sessionid, chatroomID, message_sent, message_id):
     email = check_session_id(sessionid)
     student_id, _ = profiles.get_student_uni_id(cur, email)
-    if message_id in processed_msgs:  # idempotency protection
+    if message_id in processed_requests['saveMessage']:  # idempotency protection
         return {"result": False}
-    processed_msgs[message_id] = datetime.datetime.now()
-    cleanup_processed_msgs()
+    processed_requests['saveMessage'][message_id] = datetime.datetime.now()
+    cleanup_processed_requests(processed_requests['saveMessage'])
     return {"result": chatroom.save_message(cur, student_id, chatroomID, message_sent)}
 
 
@@ -292,8 +292,13 @@ def acceptInvite(invite_id, session_id):
 
 
 @app.put("/createChatroom")
-def createChatroom(session_id, chatroom_name):
-    email = check_session_id(session_id)
+def createChatroom(sessionid, chatroom_name):
+    email = check_session_id(sessionid)
+    if (sessionid, chatroom_name) in processed_requests['createChatroom']:  # idempotency protection
+        return {"result": False}
+    processed_requests['createChatroom'][(sessionid, chatroom_name)] = datetime.datetime.now()
+    cleanup_processed_requests(processed_requests['createChatroom'])
+
     user_id, uni_id = profiles.get_student_uni_id(cur, email)
     return {"result": chatroom.create_chatroom(cur, user_id, chatroom_name, uni_id)}
 

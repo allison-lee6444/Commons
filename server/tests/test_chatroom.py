@@ -41,13 +41,13 @@ def test_retrieveMessages(postgresql):
 def test_saveMessage(postgresql):
     cur = postgresql.cursor()
     make_db(cur)
-    assert chatroom.save_message(cur, 123456, 1, "Hello pytest!") == True
+    assert chatroom.save_message(cur, 123456, 1, "Hello pytest!") is True
 
 
 def test_createChatroom(postgresql):
     cur = postgresql.cursor()
     make_db(cur)
-    assert chatroom.create_chatroom(cur, 123456, "Comp Sci Club", 'NYU') == True
+    assert chatroom.create_chatroom(cur, 123456, "Comp Sci Club", 'NYU') == 2
 
 
 def test_getChatrooms(postgresql):

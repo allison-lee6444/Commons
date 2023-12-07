@@ -4,8 +4,6 @@ import {SelectedChatroomContext, ChatroomListContext} from "@/app/components/Cha
 
 const ChatBody = ({messages, typingStatus, lastMessageRef}) => {
   const navigate = useNavigate()
-  const [selected_chatroom, a, name] = useContext(SelectedChatroomContext);
-  const chatroom_list = useContext(ChatroomListContext);
 
   const handleLeaveChat = () => {
     localStorage.removeItem("userName")

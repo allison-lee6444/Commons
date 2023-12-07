@@ -231,3 +231,8 @@ p {
   font-size: 40px;
   text-align: center;
 }
+
+
+input[type="text"].chat__entry {
+  background-color : #fffff5;
+}
