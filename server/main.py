@@ -224,6 +224,18 @@ def checkVerificationCode(sessionid, token):
     return {"result": is_verified}
 #"""
 
+@app.get("/checkVerificationCode/")
+def checkVerificationCode(sessionid, token):
+    if getVerificationStatus(sessionid)['verified']:
+        return {'result': False}
+    email = check_session_id(sessionid)
+    is_verified = verification.check_token(email, token)
+    if is_verified:
+        request_uni.request_schedule(cur, email)
+        request_uni.request_profile(cur, email)
+    return {"result": is_verified}
+#"""
+
 @app.post("/createFlashcard/")
 def createFlashcard(chatroom_id, front_text, back_text):
     return {"result": flashcard.createFlashcard(cur, chatroom_id, front_text, back_text)}
@@ -237,6 +249,7 @@ def deleteFlashcard(chatroom_id, front_text, back_text):
 @app.get("/getFlashcards/")
 def getAllFlashcards(chatroom_id):
     return {"result": flashcard.getFlashcards(cur, chatroom_id)}
+
 
 @app.get("/generateInvite")
 def generateInviteForStudent(target_user_id, chatroom_id):
@@ -261,6 +274,7 @@ def createChatroom(session_id, chatroom_name):
 @app.get("/getChatroomsForStudent")
 def getChatroomsForStudent(student_id, uni_id):
     return {"result" : chatroom.getChatrooms(cur, student_id, uni_id)}
+
 
 
 # Method called to get a student's verification status.
