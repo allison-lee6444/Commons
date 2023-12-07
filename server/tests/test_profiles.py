@@ -47,3 +47,9 @@ def test_edit_profile(postgresql):
     profiles.edit_profile(cur, 'anyu@nyu.edu', 'Chess, Sudoku', 'Math and science', 'Ab', 'Cd', 'bnyu@nyu.edu')
     assert profiles.get_profile(cur, 'bnyu@nyu.edu')['result'] == [(123, 'NYU', 'bnyu@nyu.edu', 2023, 'Physics',
                                                                     'Chess, Sudoku', 'Math and science', 'Ab', 'Cd')]
+
+
+def test_get_name(postgresql):
+    cur = postgresql.cursor()
+    make_db(cur)
+    assert profiles.get_profile(cur, 'anyu@nyu.edu')['result'][0][-2:] == ('Ab', 'Cd')

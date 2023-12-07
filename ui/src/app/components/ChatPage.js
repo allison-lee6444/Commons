@@ -2,7 +2,7 @@ import React, {useEffect, useState, useRef, createContext} from 'react'
 import ChatBar from './ChatBar'
 import ChatBody from './ChatBody'
 import ChatFooter from './ChatFooter'
-import {ChatroomListContext, SelectedChatroomContext} from "./ChatContext";
+import {ChatroomListContext, NameContext, SelectedChatroomContext} from "./ChatContext";
 import {getCookie} from "@/app/utils";
 
 const ChatPage = ({socket}) => {
@@ -12,7 +12,9 @@ const ChatPage = ({socket}) => {
   const [selected_chatroom, set_selected_chatroom] = useState(null);
   const [errorMessages, setErrorMessages] = useState({});
   const [chatroom_list, set_chatroom_list] = useState([]);
+  const [selected_chatroom_name, set_selected_chatroom_name] = useState('');
   const [received_reply, set_received_reply] = useState(false);
+  const [my_name, set_my_name] = useState('');
 
   const sessionid = getCookie('sessionid');
   if (sessionid === null) {
@@ -35,68 +37,83 @@ const ChatPage = ({socket}) => {
       .then((data) => {
         set_chatroom_list(data.chatrooms);
         set_selected_chatroom(data.chatrooms[0][0])
+        set_selected_chatroom_name(data.chatrooms[0][1]);
+      });
+    fetch("http://127.0.0.1:8060/getName/?email=" + localStorage.getItem("userName"))
+      .then((response) => response.json())
+      .then((fetch_data) => {
+        const [fname, lname] = fetch_data
+        set_my_name(fname + ' ' + lname);
         set_received_reply(true);
       });
   }, []);
 
   useEffect(() => {
-    if (selected_chatroom === null) {
+      if (selected_chatroom === null) {
+        return;
+      }
+      set_selected_chatroom_name(chatroom_list.find((elem) => elem[0] === selected_chatroom)[1]);
+
+      fetch('http://127.0.0.1:8060/retrieveMessages/?chatroomID=' + selected_chatroom)
+        .then((response) => response.json())
+        .then((data) => {
+          const m = JSON.parse(data.result).map((elem) => {
+            const [student_id, chatroom_id, content, datetime, fname, lname, email] = elem;
+            return ({
+              text: content,
+              username: email,
+              name: fname + ' ' + lname,
+              datetime: Date.parse(datetime),
+              chatroom: chatroom_id,
+              socketID: socket.id,
+              id: null
+            })
+          });
+          m.sort((a, b) => b.datetime < a.datetime ? 1 : -1)
+          setMessages(m);
+        });
+    }, [socket, selected_chatroom]
+  )
+  ;
+
+  useEffect(() => {
+    socket.on("messageResponse", data => {
+      setMessages([...messages, data]);
+      if (data.username === localStorage.getItem("userName")) {
+        fetch("http://127.0.0.1:8060/saveMessage/?sessionid=" + sessionid + "&chatroomID=" + data.chatroom +
+          "&message_sent=" + data.text + '&message_id=' + data.id, {method: "PUT"});
+      }
+    })
+  }, [socket, messages])
+
+  useEffect(() => {
+    socket.on("typingResponse", data => setTypingStatus(data))
+  }, [socket])
+
+  useEffect(() => {
+    // 👇️ scroll to bottom every time messages change
+    if (lastMessageRef === null) {
       return;
     }
-
-    fetch('http://127.0.0.1:8060/retrieveMessages/?chatroomID=' + selected_chatroom)
-      .then((response) => response.json())
-      .then((data) => {
-        const m = JSON.parse(data.result).map((elem) => {
-          const [student_id, chatroom_id, content, datetime] = elem;
-          return ({
-            text: content,
-            name: student_id,
-            datetime: Date.parse(datetime),
-            chatroom: chatroom_id,
-            socketID: socket.id,
-            acked: true
-          })
-        });
-        setMessages(m);
-      });
-}, [socket, selected_chatroom]
-)
-;
-
-useEffect(() => {
-  socket.on("messageResponse", data => {
-    setMessages([...messages, data]);
-    fetch("http://127.0.0.1:8060/saveMessage/?sessionid=" + sessionid + "&chatroomID=" + data.chatroom +
-      "&message_sent=" + data.text, {method: "PUT"});
-  })
-}, [socket, messages])
-
-useEffect(() => {
-  socket.on("typingResponse", data => setTypingStatus(data))
-}, [socket])
-
-useEffect(() => {
-  // 👇️ scroll to bottom every time messages change
-  lastMessageRef.current?.scrollIntoView({behavior: 'smooth'});
-}, [messages]);
+    lastMessageRef.current?.scrollIntoView({behavior: "instant"});
+  }, [messages]);
 
 
-return (received_reply &&
-  <div className="chat">
-    <SelectedChatroomContext.Provider value={[selected_chatroom, set_selected_chatroom]}>
-      <ChatroomListContext.Provider value={chatroom_list}>
-        <ChatBar socket={socket}/>
-
-        <div className='chat__main'>
-          <ChatBody messages={messages} typingStatus={typingStatus} lastMessageRef={lastMessageRef}/>
-          <ChatFooter socket={socket}/>
-        </div>
-      </ChatroomListContext.Provider>
-
-    </SelectedChatroomContext.Provider>
-  </div>
-)
+  return (received_reply &&
+    <div className="chat">
+      <SelectedChatroomContext.Provider value={[selected_chatroom, set_selected_chatroom, selected_chatroom_name]}>
+        <ChatroomListContext.Provider value={chatroom_list}>
+          <ChatBar socket={socket}/>
+          <div className='chat__main'>
+            <ChatBody messages={messages} typingStatus={typingStatus} lastMessageRef={lastMessageRef}/>
+            <NameContext.Provider value={my_name}>
+              <ChatFooter socket={socket}/>
+            </NameContext.Provider>
+          </div>
+        </ChatroomListContext.Provider>
+      </SelectedChatroomContext.Provider>
+    </div>
+  )
 }
 
 export default ChatPage
