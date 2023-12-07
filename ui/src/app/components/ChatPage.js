@@ -26,11 +26,6 @@ const ChatPage = ({socket}) => {
     )
   }
 
-  const renderErrorMessage = (name) =>
-    name === errorMessages.name && (
-      <div className="error text-red-700">{errorMessages.message}</div>
-    );
-
   useEffect(() => {
     fetch('http://127.0.0.1:8060/getChatroom/?sessionid=' + sessionid)
       .then((response) => response.json())
@@ -102,15 +97,15 @@ const ChatPage = ({socket}) => {
   return (received_reply &&
     <div className="chat">
       <SelectedChatroomContext.Provider value={[selected_chatroom, set_selected_chatroom, selected_chatroom_name]}>
-        <ChatroomListContext.Provider value={chatroom_list}>
+        <ChatroomListContext.Provider value={[chatroom_list, set_chatroom_list]}>
           <ChatBar socket={socket}/>
-          <div className='chat__main'>
-            <ChatBody messages={messages} typingStatus={typingStatus} lastMessageRef={lastMessageRef}/>
-            <NameContext.Provider value={my_name}>
-              <ChatFooter socket={socket}/>
-            </NameContext.Provider>
-          </div>
         </ChatroomListContext.Provider>
+        <div className='chat__main'>
+          <ChatBody messages={messages} typingStatus={typingStatus} lastMessageRef={lastMessageRef}/>
+          <NameContext.Provider value={my_name}>
+            <ChatFooter socket={socket}/>
+          </NameContext.Provider>
+        </div>
       </SelectedChatroomContext.Provider>
     </div>
   )

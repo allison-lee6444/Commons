@@ -70,19 +70,17 @@ def save_message(cur, sender_id, chatroomID, message_sent):
 
 # Create non-course chatroom
 def create_chatroom(cur, user_id, chatroom_name, uni_id):
-    try: 
+    try:
         cur.execute("INSERT INTO chatroom(chatroom_name, uni_id) VALUES(%(chatroom_name)s, %(uni_id)s)", {"chatroom_name" : chatroom_name, "uni_id" : uni_id})
-        
         #cur.execute("SELECT id FROM chatroom where chatroom_name = %(chatroom_name)s   AND uni_id = %(uni_id)s", {"chatroom_name" : chatroom_name, "uni_id" : uni_id})
-        cur.execute("SELECT count(*) FROM chatroom")
-
+        cur.execute("SELECT MAX(id) FROM chatroom")
         chatroom_id = cur.fetchall()[0][0]
-        
+
         cur.execute(
             "INSERT INTO in_chatroom(student_id, uni_id, chatroom_id) VALUES(%(user_id)s, %(uni_id)s, %(chatroom_id)s)",
             {"user_id": user_id, "uni_id": uni_id, "chatroom_id": chatroom_id})
         cur.execute("COMMIT")
-        return True
+        return chatroom_id
     except BaseException as e:
         print(f'Exception: {e}')
         raise HTTPException(
