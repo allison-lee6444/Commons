@@ -1,18 +1,19 @@
 START TRANSACTION;
 
-DROP TABLE IF EXISTS going_to_event;
-DROP TABLE IF EXISTS message;
-DROP TABLE IF EXISTS player;
-DROP TABLE IF EXISTS in_chatroom;
-DROP TABLE IF EXISTS flashcard;
-DROP TABLE IF EXISTS chatroom;
-DROP TABLE IF EXISTS takes;
-DROP TABLE IF EXISTS section;
-DROP TABLE IF EXISTS student;
-DROP TABLE IF EXISTS course;
-DROP TABLE IF EXISTS university;;
-DROP TABLE IF EXISTS game;
-DROP TABLE IF EXISTS event;
+DROP TABLE IF EXISTS going_to_event CASCADE;
+DROP TABLE IF EXISTS message CASCADE;
+DROP TABLE IF EXISTS player CASCADE;
+DROP TABLE IF EXISTS in_chatroom CASCADE;
+DROP TABLE IF EXISTS flashcard CASCADE;
+DROP TABLE IF EXISTS chatroom CASCADE;
+DROP TABLE IF EXISTS takes CASCADE;
+DROP TABLE IF EXISTS section CASCADE;
+DROP TABLE IF EXISTS student CASCADE;
+DROP TABLE IF EXISTS course CASCADE;
+DROP TABLE IF EXISTS university CASCADE;
+DROP TABLE IF EXISTS game CASCADE;
+DROP TABLE IF EXISTS event CASCADE;
+DROP TABLE IF EXISTS invite CASCADE;
 
 CREATE TABLE IF NOT EXISTS student(
     student_id bigint,
@@ -101,6 +102,19 @@ CREATE TABLE IF NOT EXISTS in_chatroom (
     --foreign key(`email`) REFERENCES `student`(`email`) ON DELETE CASCADE,
     foreign key(student_id, uni_id, course_id) REFERENCES takes(student_id, uni_id, course_id) ON DELETE CASCADE,
     foreign key(chatroom_id) REFERENCES chatroom(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS invite(
+    invite_id varchar(10),
+    chatroom_id bigint,
+    invite_sender_id bigint, --student id of the user who is sending the invite
+    target_user_id bigint, --student id of the user who is being invited
+    uni_id varchar(255),
+    primary key(invite_id),
+    foreign key(target_user_id, uni_id) REFERENCES student(student_id, uni_id),
+    foreign key(invite_sender_id, uni_id) REFERENCES student(student_id, uni_id),
+    foreign key(chatroom_id, invite_sender_id) REFERENCES in_chatroom(chatroom_id, student_id)
+    --make sure the user sending the invite is in the chatroom
 );
 
 CREATE TABLE IF NOT EXISTS message (

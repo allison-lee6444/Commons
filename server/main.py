@@ -247,6 +247,18 @@ def getName(email):
     return name
 
 
+@app.get("/checkVerificationCode/")
+def checkVerificationCode(sessionid, token):
+    if getVerificationStatus(sessionid)['verified']:
+        return {'result': False}
+    email = check_session_id(sessionid)
+    is_verified = verification.check_token(email, token)
+    if is_verified:
+        request_uni.request_schedule(cur, email)
+        request_uni.request_profile(cur, email)
+    return {"result": is_verified}
+#"""
+
 @app.post("/createFlashcard/")
 def createFlashcard(chatroom_id, front_text, back_text):
     return {"result": flashcard.createFlashcard(cur, chatroom_id, front_text, back_text)}
@@ -260,6 +272,35 @@ def deleteFlashcard(chatroom_id, front_text, back_text):
 @app.get("/getFlashcards/")
 def getAllFlashcards(chatroom_id):
     return {"result": flashcard.getFlashcards(cur, chatroom_id)}
+
+
+@app.get("/generateInvite")
+def generateInvite(session_id, target_user_email, chatroom_id):
+    email = check_session_id(session_id)
+    sender_id, uni_id = profiles.get_student_uni_id(cur, email)
+    target_user_id, uni_id = profiles.get_student_uni_id(cur, target_user_email)
+    return {"result": chatroom.generate_invite(cur, target_user_id, sender_id, chatroom_id, uni_id)}
+
+@app.post("/acceptInvite")
+def acceptInvite(invite_id, session_id):
+    email = check_session_id(session_id)
+    cur.execute("SELECT student_id FROM student WHERE email=%(email)s", {"email" : email})
+    target_user_id = cur.fetchall()[0][0]
+    return {"result":chatroom.accept_invite(cur, invite_id, target_user_id)}
+
+@app.put("/createChatroom")
+def createChatroom(session_id, chatroom_name):
+    email = check_session_id(session_id)
+    cur.execute("SELECT student_id FROM student WHERE email=%(email)s", {"email" : email})
+    user_id = cur.fetchall()[0][0]
+    cur.execute("SELECT uni_id FROM student WHERE email=%(email)s", {"email" : email})
+    uni_id = cur.fetchall()[0][0]
+    return {"result" : chatroom.create_chatroom(cur, user_id, chatroom_name, uni_id)}
+
+@app.get("/getChatroomsForStudent")
+def getChatroomsForStudent(student_id, uni_id):
+    return {"result" : chatroom.getChatrooms(cur, student_id, uni_id)}
+
 
 
 # Method called to get a student's verification status.

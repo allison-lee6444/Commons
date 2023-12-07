@@ -1,4 +1,10 @@
 from server import chatroom
+
+import random
+import string
+import datetime
+import json
+
 from pytest_postgresql import factories
 
 postgresql_proc = factories.postgresql_proc(
@@ -49,3 +55,4 @@ def test_getChatrooms(postgresql):
     make_db(cur)
     # start
     assert chatroom.getChatrooms(cur, 123456, 'NYU')['chatrooms'] == [(1, "CS-UY 1234 Chatroom")]
+
