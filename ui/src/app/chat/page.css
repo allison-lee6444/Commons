@@ -212,7 +212,7 @@ p {
 
 .menu_button {
   display: block;
-  background-color: rgb(76, 76, 62);
+  background-color: #4c4c3e;
   border-radius: 15px;
   font-size: 20px;
   text-align: center;
@@ -235,4 +235,25 @@ p {
 
 input[type="text"].chat__entry {
   background-color : #fffff5;
+}
+
+.invite_button {
+  display: block;
+  background-color: #4c4c3e;
+  border-radius: 15px;
+  font-size: 20px;
+  left: 50%;
+  width: 15%;
+  margin: 5px;
+  color: white;
+  text-decoration: none;
+  position: absolute;
+}
+
+.invite_button:disabled {
+  background-color: #b9b9af;
+}
+
+.input_email_label{
+  font-size: 18px;
 }
