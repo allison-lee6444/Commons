@@ -11,11 +11,6 @@ def serialize_datetime(obj):
         return obj.isoformat()
 
 
-def serialize_datetime(obj):
-    if isinstance(obj, datetime.datetime):
-        return obj.isoformat()
-
-
 # Check if a specific chatroom has had any new messages since the provided time.
 def get_msg_update(cur, chatroom_id, date_time):
     try:
@@ -178,6 +173,23 @@ def getChatrooms(cur, student_id, uni_id):
         )
         result = cur.fetchall()
         return {"chatrooms": result}
+    except BaseException as e:
+        print(f'Exception: {e}')
+        raise HTTPException(
+            status_code=500,
+            detail="Database Error",
+        )
+    
+# Get a list of events associated with a chatroom.
+def get_chatroom_events(cur,chatroomID):
+    try:
+        cur.execute(
+            "SELECT event_name,host_id,uni_id,descript,location_name,location_coordinates,start_time,end_time,"
+            "event_id FROM event WHERE chatroom_id=%(chatroomID)s",{'chatroomID':chatroomID}
+
+        )
+        result = json.dumps(cur.fetchall(),default=serialize_datetime)
+        return {"events":result}
     except BaseException as e:
         print(f'Exception: {e}')
         raise HTTPException(

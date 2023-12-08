@@ -26,7 +26,8 @@ def make_db(cur):
     cur.execute("INSERT INTO chatroom VALUES (1,'CS-UY 1234 Chatroom','NYU','CS-UY 1234');")
     cur.execute("INSERT INTO in_chatroom VALUES (123456,'NYU','CS-UY 1234',1);")
     cur.execute("INSERT INTO message VALUES (123456,1,'THIS IS A TEST MESSAGE!','2023-11-13 10:00:00');")
-
+    cur.execute(
+        "INSERT INTO event VALUES ('Orientation',123456,'NYU',1,'Welcome!','370 Jay Street',POINT(1.0,1.0),'2023-12-01 08:00:00','2023-12-01 10:00:00');")
 
 def test_get_msg_update(postgresql):
     cur = postgresql.cursor()
@@ -79,3 +80,11 @@ def test_invite(postgresql):
                 " chatroom_id = 2")
     result = cur.fetchall()
     assert result == [(654321,)]
+
+def test_get_chatroom_events(postgresql):
+    cur = postgresql.cursor()
+    make_db(cur)
+    # Get starter event id.
+    cur.execute("SELECT event_id FROM event WHERE event_name='Orientation'")
+    event_id = cur.fetchone()[0]
+    assert chatroom.get_chatroom_events(cur,1)["events"] == '[["Orientation", 123456, "NYU", "Welcome!", "370 Jay Street", "(1,1)", "2023-12-01T08:00:00", "2023-12-01T10:00:00", '+ str(event_id)+']]'

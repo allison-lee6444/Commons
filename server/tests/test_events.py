@@ -23,11 +23,11 @@ def make_db(cur):
         "INSERT INTO event VALUES ('Orientation',123456,'NYU',1,'Welcome!','370 Jay Street',POINT(1.0,1.0),'2023-12-01 08:00:00','2023-12-01 10:00:00');")
 
 
-def test_editEvent(postgresql):
+def test_create_event(postgresql):
     cur = postgresql.cursor()
     make_db(cur)
     # Valid chatroom.
-    assert events.editEvent(cur, 1, "TEST123", 123456, "NYU", "Testing theh function.", "Test City", '(1,2)',
+    assert events.create_event(cur, 1, "TEST123", 123456, "NYU", "Testing theh function.", "Test City", '(1,2)',
                             '2023-11-13 10:00:00', '2023-11-13 12:00:00') is True
 
 
@@ -96,3 +96,16 @@ def test_has_conflict(postgresql):
     assert events.has_conflict(cur, dt1, dt2, 123456) is True
     # conflict with a class
     assert events.has_conflict(cur, dt3, dt4, 123456) is True
+
+def test_edit_event(postgresql):
+    cur = postgresql.cursor()
+    make_db(cur)
+    # Get starter event id.
+    cur.execute("SELECT event_id FROM event WHERE event_name='Orientation'")
+    event_id = cur.fetchone()[0]
+    # Update this event.  See if it returns true.
+    assert events.edit_event(cur,1,'Not Orientation',123456,'NYU','Welcome to not orientation!','Rogers Hall','(1.0,1.0)','2023-12-20 08:00:00','2023-12-20 12:00:00',event_id)["result"] == True
+    # See if it updated.
+    cur.execute("SELECT event_name FROM event WHERE event_id=%(event_id)s",{'event_id':event_id})
+    assert cur.fetchall()[0][0] == 'Not Orientation'
+
