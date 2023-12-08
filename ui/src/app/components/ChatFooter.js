@@ -3,10 +3,8 @@ import {NameContext, SelectedChatroomContext} from "@/app/components/ChatContext
 
 const ChatFooter = ({socket}) => {
   const [message, setMessage] = useState("");
-  const [selected_chatroom, a, b] = useContext(SelectedChatroomContext);
+  const [selected_chatroom, a, b, c] = useContext(SelectedChatroomContext);
   const my_name = useContext(NameContext);
-
-  const handleTyping = () => socket.emit("typing", `${my_name} is typing`);
 
   const handleSendMessage = (e) => {
     e.preventDefault()
@@ -34,7 +32,6 @@ const ChatFooter = ({socket}) => {
           className='message'
           value={message}
           onChange={e => setMessage(e.target.value)}
-          onKeyDown={handleTyping}
         />
         <button className="sendBtn">SEND</button>
       </form>

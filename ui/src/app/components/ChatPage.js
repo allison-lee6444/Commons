@@ -10,11 +10,11 @@ const ChatPage = ({socket}) => {
   const [typingStatus, setTypingStatus] = useState("")
   const lastMessageRef = useRef(null);
   const [selected_chatroom, set_selected_chatroom] = useState(null);
-  const [errorMessages, setErrorMessages] = useState({});
   const [chatroom_list, set_chatroom_list] = useState([]);
   const [selected_chatroom_name, set_selected_chatroom_name] = useState('');
   const [received_reply, set_received_reply] = useState(false);
   const [my_name, set_my_name] = useState('');
+  const [selected_chatroom_invitable, set_selected_chatroom_invitable] = useState(false);
 
   const sessionid = getCookie('sessionid');
   if (sessionid === null) {
@@ -31,8 +31,10 @@ const ChatPage = ({socket}) => {
       .then((response) => response.json())
       .then((data) => {
         set_chatroom_list(data.chatrooms);
-        set_selected_chatroom(data.chatrooms[0][0])
-        set_selected_chatroom_name(data.chatrooms[0][1]);
+        const [id, name, is_club_room] = data.chatrooms[0]; // preselect the first chatroom
+        set_selected_chatroom(id);
+        set_selected_chatroom_name(name);
+        set_selected_chatroom_invitable(is_club_room);
       });
     fetch("http://127.0.0.1:8060/getName/?email=" + localStorage.getItem("userName"))
       .then((response) => response.json())
@@ -47,7 +49,9 @@ const ChatPage = ({socket}) => {
       if (selected_chatroom === null) {
         return;
       }
-      set_selected_chatroom_name(chatroom_list.find((elem) => elem[0] === selected_chatroom)[1]);
+      const [id, name, is_club_room] = chatroom_list.find((elem) => elem[0] === selected_chatroom);
+      set_selected_chatroom_name(name);
+      set_selected_chatroom_invitable(is_club_room);
 
       fetch('http://127.0.0.1:8060/retrieveMessages/?chatroomID=' + selected_chatroom)
         .then((response) => response.json())
@@ -96,7 +100,9 @@ const ChatPage = ({socket}) => {
 
   return (received_reply &&
     <div className="chat">
-      <SelectedChatroomContext.Provider value={[selected_chatroom, set_selected_chatroom, selected_chatroom_name]}>
+      <SelectedChatroomContext.Provider
+        value={[selected_chatroom, set_selected_chatroom, selected_chatroom_name, selected_chatroom_invitable]}
+      >
         <ChatroomListContext.Provider value={[chatroom_list, set_chatroom_list]}>
           <ChatBar socket={socket}/>
         </ChatroomListContext.Provider>

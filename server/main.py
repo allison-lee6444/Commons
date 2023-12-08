@@ -271,17 +271,24 @@ def getAllFlashcards(chatroom_id):
     return {"result": flashcard.getFlashcards(cur, chatroom_id)}
 
 
-@app.get("/generateInvite")
+@app.post("/generateInvite")
 def generateInvite(session_id, target_user_email, chatroom_id):
     email = check_session_id(session_id)
     sender_id, uni_id = profiles.get_student_uni_id(cur, email)
-    target_user_id, uni_id = profiles.get_student_uni_id(cur, target_user_email)
+    try:
+        target_user_id, uni_id = profiles.get_student_uni_id(cur, target_user_email)
+    except BaseException:
+        print(f'Exception: Invalid email address for invite target')
+        raise HTTPException(
+            status_code=500,
+            detail="Database Error",
+        )
     return {"result": chatroom.generate_invite(cur, target_user_id, sender_id, chatroom_id, uni_id)}
 
 
 @app.post("/acceptInvite")
-def acceptInvite(invite_id, session_id):
-    email = check_session_id(session_id)
+def acceptInvite(sessionid, invite_id):
+    email = check_session_id(sessionid)
     target_user_id, _ = profiles.get_student_uni_id(cur, email)
     return {"result": chatroom.accept_invite(cur, invite_id, target_user_id)}
 

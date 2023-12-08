@@ -8,34 +8,40 @@ import json
 from pytest_postgresql import factories
 
 postgresql_proc = factories.postgresql_proc(
-    load=["database/create_tables.sql"],port=8500
+    load=["database/create_tables.sql"], port=8500
 )
 postgresql = factories.postgresql("postgresql_proc")
 
+
 def make_db(cur):
     cur.execute("INSERT INTO university VALUES ('NYU');")
-    cur.execute("INSERT INTO student VALUES (123456,'NYU','abc123@nyu.edu','A','Bb',NULL,NULL,NULL,NULL,'thePass','theSalt');")
+    cur.execute(
+        "INSERT INTO student VALUES (123456,'NYU','abc123@nyu.edu','A','Bb',NULL,NULL,NULL,NULL,'thePass','theSalt');")
+    cur.execute(
+        "INSERT INTO student VALUES (654321,'NYU','def456@nyu.edu','C','Dd',NULL,NULL,NULL,NULL,'thePass','theSalt');")
     cur.execute("INSERT INTO course VALUES ('CS-UY 1234','NYU');")
-    cur.execute("INSERT INTO section VALUES ('CS-UY 1234','NYU','A','08:00:00','10:00:00','2023-09-01','2023-12-31','2023',true,false,true,false,false,false,false);")
+    cur.execute(
+        "INSERT INTO section VALUES ('CS-UY 1234','NYU','A','08:00:00','10:00:00','2023-09-01','2023-12-31','2023',true,false,true,false,false,false,false);")
     cur.execute("INSERT INTO takes VALUES (123456,'NYU','CS-UY 1234','A');")
-    cur.execute("INSERT INTO chatroom VALUES (DEFAULT,'CS-UY 1234 Chatroom','NYU','CS-UY 1234');")
+    cur.execute("INSERT INTO chatroom VALUES (1,'CS-UY 1234 Chatroom','NYU','CS-UY 1234');")
     cur.execute("INSERT INTO in_chatroom VALUES (123456,'NYU','CS-UY 1234',1);")
     cur.execute("INSERT INTO message VALUES (123456,1,'THIS IS A TEST MESSAGE!','2023-11-13 10:00:00');")
-
 
 
 def test_get_msg_update(postgresql):
     cur = postgresql.cursor()
     make_db(cur)
     # start
-    assert chatroom.get_msg_update(cur, 1, '2023-11-12 10:00:00') == '[[123456, 1, "THIS IS A TEST MESSAGE!", "2023-11-13T10:00:00"]]' 
+    assert chatroom.get_msg_update(cur, 1,
+                                   '2023-11-12 10:00:00') == '[[123456, 1, "THIS IS A TEST MESSAGE!", "2023-11-13T10:00:00"]]'
 
 
 def test_retrieveMessages(postgresql):
     cur = postgresql.cursor()
     make_db(cur)
     # start
-    assert chatroom.retrieve_messages(cur, 1) == '[[123456, 1, "THIS IS A TEST MESSAGE!", "2023-11-13T10:00:00", "A", "Bb", "abc123@nyu.edu"]]'
+    assert chatroom.retrieve_messages(cur,
+                                      1) == '[[123456, 1, "THIS IS A TEST MESSAGE!", "2023-11-13T10:00:00", "A", "Bb", "abc123@nyu.edu"]]'
 
 
 def test_saveMessage(postgresql):
@@ -54,5 +60,22 @@ def test_getChatrooms(postgresql):
     cur = postgresql.cursor()
     make_db(cur)
     # start
-    assert chatroom.getChatrooms(cur, 123456, 'NYU')['chatrooms'] == [(1, "CS-UY 1234 Chatroom")]
+    assert (chatroom.getChatrooms(cur, 123456, 'NYU')['chatrooms'] ==
+            [(1, "CS-UY 1234 Chatroom", False)])
 
+
+def test_invite(postgresql):
+    cur = postgresql.cursor()
+    make_db(cur)
+    chatroom.create_chatroom(cur, 123456, "Comp Sci Club", 'NYU')
+    invite_id = chatroom.generate_invite(cur, 654321, 123456, 2, 'NYU')
+    cur.execute("SELECT invite_id FROM invite WHERE invite_sender_id=123456 AND target_user_id=654321 AND uni_id='NYU'"
+                "AND chatroom_id=2")
+    result = cur.fetchall()
+    assert result == [(invite_id,)]
+
+    assert chatroom.accept_invite(cur, invite_id, 654321) == (2, "Comp Sci Club")
+    cur.execute("SELECT student_id FROM in_chatroom WHERE student_id=654321 AND uni_id='NYU' AND course_id is NULL AND"
+                " chatroom_id = 2")
+    result = cur.fetchall()
+    assert result == [(654321,)]
