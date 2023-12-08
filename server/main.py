@@ -224,7 +224,7 @@ def verifyIdentity(sessionid):
         return {'result': False}
     return {"result": asyncio.run(verification.start_verify(email))}
 
-
+ 
 @app.get("/checkVerificationCode/")
 def checkVerificationCode(sessionid, token):
     if getVerificationStatus(sessionid)['verified']:
