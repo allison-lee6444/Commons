@@ -7,9 +7,8 @@ def serialize_datetime(obj):
     if isinstance(obj, (datetime.datetime, datetime.time, datetime.date)):
         return obj.isoformat()
 
-
-# Create a new event.
-def editEvent(cur, chatroom_id, event_name, host_id, uni_id, description, loc_name, loc_coords, start_time, end_time):
+# Create a event.
+def create_event(cur, chatroom_id, event_name, host_id, uni_id, description, loc_name, loc_coords, start_time, end_time):
     try:
 
         cur.execute(
@@ -27,7 +26,44 @@ def editEvent(cur, chatroom_id, event_name, host_id, uni_id, description, loc_na
             status_code=500,
             detail="Database Error",
         )
+    
+# Edit a event.
+def edit_event(cur, chatroom_id, event_name, host_id, uni_id, description, loc_name, loc_coords, start_time, end_time, event_id):
+    try:
+        cur.execute(
+            "SELECT * FROM event WHERE event_id=%(event_id)s",{'event_id':event_id}
+        )
+        result = cur.fetchall()
 
+        if len(result) != 0:
+            cur.execute(
+                "UPDATE event SET event_name=%(event_name)s,host_id=%(host_id)s,uni_id=%(uni_id)s,"
+                "chatroom_id=%(chatroom_id)s,descript=%(description)s,location_name=%(loc_name)s,"
+                "location_coordinates=%(loc_coords)s,start_time=%(start_time)s,end_time=%(end_time)s "
+                "WHERE event_id=%(event_id)s",
+                {
+                    'event_name':event_name,
+                    'host_id':host_id,
+                    'uni_id':uni_id,
+                    'chatroom_id':chatroom_id,
+                    'description':description,
+                    'loc_name':loc_name,
+                    'loc_coords':loc_coords,
+                    'start_time':start_time,
+                    'end_time':end_time,
+                    'event_id':event_id
+                }
+            )
+            cur.execute("COMMIT")
+            return {'result':True}
+        
+        return {'result':False}
+    except BaseException as e:
+        print(f'Exception: {e}')
+        raise HTTPException(
+            status_code=500,
+            detail="Database Error",
+        )
 
 # When a student hits the "join event" button.
 def join_event(cur, event_id, student_id, chatroom_id):

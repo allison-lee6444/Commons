@@ -25,7 +25,12 @@ app.add_middleware(
 )
 
 sessions = {}
-processed_requests = {'saveMessage': {}, 'createChatroom': {}}
+processed_requests = {
+    'saveMessage': {}, 
+    'createChatroom': {}, 
+    'createEvent': {},
+    'editEvent': {}
+}
 name_cache = {}
 
 
@@ -130,17 +135,31 @@ def getChatroom(sessionid):
 
 
 # Method to create a new event and save it in the DB.
-@app.post("/editEvent/")
-def editEvent(sessionid, chatroomID, eventName, description, locName, locCoord, startTime, endTime):
+@app.post("/createEvent/")
+def createEvent(sessionid, chatroomID, eventName, description, locName, locCoord, startTime, endTime):
     email = check_session_id(sessionid)
     # check authorization using email and convert host id
     host_id, uni_id = profiles.get_student_uni_id(cur, email)
+    if (sessionid, email, host_id, uni_id, eventName, chatroomID) in processed_requests['createEvent']:  # idempotency protection
+        return {"result": False}
+    processed_requests['createEvent'][(sessionid, email, host_id, uni_id, eventName, chatroomID)] = datetime.datetime.now()
     return {
         "result":
-            events.editEvent(cur, chatroomID, eventName, host_id, uni_id, description, locName, locCoord, startTime,
+            events.create_event(cur, chatroomID, eventName, host_id, uni_id, description, locName, locCoord, startTime,
                              endTime)
     }
 
+# Method to edit an event.
+@app.post('/editEvent')
+def editEvent(sessionid, chatroom_id, event_name, description, loc_name, loc_coords, start_time, end_time, event_id):
+    email = check_session_id(sessionid)
+    # check authorization using email and convert host id
+    host_id, uni_id = profiles.get_student_uni_id(cur, email)
+    if (sessionid, email, host_id, uni_id, event_name, chatroom_id) in processed_requests['createEvent']:  # idempotency protection
+        return {"result": False}
+    processed_requests['editEvent'][(sessionid, email, host_id, uni_id, event_name, chatroom_id)] = datetime.datetime.now()
+    return events.edit_event(cur,chatroom_id,event_name,host_id,uni_id,description,loc_name,loc_coords,start_time,
+                             end_time,event_id)
 
 # Method called when a student joins a event.
 @app.put("/joinEvent/")
@@ -316,6 +335,10 @@ def getVerificationStatus(sessionid):
     email = check_session_id(sessionid)
     return profiles.is_verified(cur, email)
 
+# Method called to get a list events in a chatroom.
+@app.get("getChatroomEvents")
+def getChatroomEvents(chatroomID):
+    return chatroom.get_chatroom_events(cur,chatroomID)
 
 # Test function to send random data.
 @app.get("/test/")
