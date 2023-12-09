@@ -242,7 +242,20 @@ input[type="text"].chat__entry {
   background-color: #4c4c3e;
   border-radius: 15px;
   font-size: 20px;
-  left: 50%;
+  left: 40%;
+  width: 15%;
+  margin: 5px;
+  color: white;
+  text-decoration: none;
+  position: absolute;
+}
+
+.chat_event_button {
+  display: block;
+  background-color: #4c4c3e;
+  border-radius: 15px;
+  font-size: 20px;
+  left: 60%;
   width: 15%;
   margin: 5px;
   color: white;

@@ -24,7 +24,7 @@ function EditProfile() {
     lname: ''
   });
 
-  let data, email_fetched, ver_status_fetched, returned_values;
+  let data, email_fetched, ver_status_fetched;
 
   const sessionid = getCookie('sessionid');
   if (sessionid === null) {
@@ -49,17 +49,12 @@ function EditProfile() {
     let old_email = profile_info.email;
 
     const new_profile = {
-      student_id: getValues('student_id'),
-      uni_id: getValues('uni_id'),
-      email: getValues('email') === '' ? old_email : getValues('email'),
-      graduation_year: getValues('graduation_year'),
-      major: getValues('major'),
-      hobbies: getValues('hobbies'),
-      interests: getValues('interests'),
-      fname: getValues('fname'),
-      lname: getValues('lname')
+      email: (getFieldState('email').isDirty && !verfication_status) ? getValues('email') : old_email,
+      hobbies: getFieldState('hobbies').isDirty ? getValues('hobbies') : profile_info.hobbies,
+      interests: getFieldState('interests').isDirty ? getValues('interests') : profile_info.interests,
+      fname: getFieldState('fname').isDirty ? getValues('fname') : profile_info.fname,
+      lname: getFieldState('lname').isDirty ? getValues('lname') : profile_info.lname
     };
-    set_profile_info(profile_info);
     const current_pw = getValues('curr_pw');
     const new_pw = getValues('new_pw');
 
@@ -115,7 +110,6 @@ function EditProfile() {
     window.location.replace('/profile');
   }
 
-  // My attempt.
   const handleVerify = () => {
     window.location.replace('/profile/verify');
   }
@@ -159,10 +153,9 @@ function EditProfile() {
 
   const {
     register,
-    getValues
-  } = useForm({
-    values: returned_values,
-  });
+    getValues,
+    getFieldState
+  } = useForm();
 
 
   // load when api reply received and variables populated

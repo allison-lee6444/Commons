@@ -63,7 +63,12 @@ const ChatBody = ({messages, typingStatus, lastMessageRef}) => {
         >
           Invite to Chatroom
         </button>
-
+        <button
+          className="chat_event_button"
+          onClick={()=>{window.location.replace('/events/chatroom/'+id)}}
+        >
+          Chatroom events
+        </button>
         <Popup open={show_popup}
                closeOnDocumentClick
                onClose={() => {
@@ -80,7 +85,8 @@ const ChatBody = ({messages, typingStatus, lastMessageRef}) => {
               <br/>
               {submit_success ?
                 <label className="input_email_label">
-                  Success! The invitation code is {success_invitation_id}. Send this code to your friend so they can accept your invitation!
+                  Success! The invitation code is {success_invitation_id}. Send this code to your friend so they can
+                  accept your invitation!
                   You may close the window now.
                 </label> :
                 (<div>

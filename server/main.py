@@ -26,8 +26,8 @@ app.add_middleware(
 
 sessions = {}
 processed_requests = {
-    'saveMessage': {}, 
-    'createChatroom': {}, 
+    'saveMessage': {},
+    'createChatroom': {},
     'createEvent': {},
     'editEvent': {}
 }
@@ -140,51 +140,64 @@ def createEvent(sessionid, chatroomID, eventName, description, locName, locCoord
     email = check_session_id(sessionid)
     # check authorization using email and convert host id
     host_id, uni_id = profiles.get_student_uni_id(cur, email)
-    if (sessionid, email, host_id, uni_id, eventName, chatroomID) in processed_requests['createEvent']:  # idempotency protection
+    if (sessionid, email, host_id, uni_id, eventName, chatroomID) in processed_requests[
+        'createEvent']:  # idempotency protection
         return {"result": False}
-    processed_requests['createEvent'][(sessionid, email, host_id, uni_id, eventName, chatroomID)] = datetime.datetime.now()
+    processed_requests['createEvent'][
+        (sessionid, email, host_id, uni_id, eventName, chatroomID)] = datetime.datetime.now()
     return {
         "result":
             events.create_event(cur, chatroomID, eventName, host_id, uni_id, description, locName, locCoord, startTime,
-                             endTime)
+                                endTime)
     }
 
+
 # Method to edit an event.
-@app.post('/editEvent')
-def editEvent(sessionid, chatroom_id, event_name, description, loc_name, loc_coords, start_time, end_time, event_id):
+@app.put('/editEvent')
+def editEvent(sessionid, event_name, description, loc_name, loc_coords, start_time, end_time, event_id):
     email = check_session_id(sessionid)
     # check authorization using email and convert host id
     host_id, uni_id = profiles.get_student_uni_id(cur, email)
-    if (sessionid, email, host_id, uni_id, event_name, chatroom_id) in processed_requests['createEvent']:  # idempotency protection
+    if (sessionid, email, host_id, uni_id, event_name) in processed_requests[
+        'createEvent']:  # idempotency protection
         return {"result": False}
-    processed_requests['editEvent'][(sessionid, email, host_id, uni_id, event_name, chatroom_id)] = datetime.datetime.now()
-    return events.edit_event(cur,chatroom_id,event_name,host_id,uni_id,description,loc_name,loc_coords,start_time,
-                             end_time,event_id)
+    processed_requests['editEvent'][
+        (sessionid, email, host_id, uni_id, event_name)] = datetime.datetime.now()
+    return events.edit_event(cur, event_name, host_id, uni_id, description, loc_name, loc_coords,
+                             start_time,
+                             end_time, event_id)
+
 
 # Method called when a student joins a event.
 @app.put("/joinEvent/")
-def joinEvent(eventID, studentID, chatroomID):
-    return {"result": events.join_event(cur, eventID, studentID, chatroomID)}
+def joinEvent(sessionid, eventID):
+    email = check_session_id(sessionid)
+    student_id, uni_id = profiles.get_student_uni_id(cur, email)
+    return {"result": events.join_event(cur, eventID, student_id, uni_id)}
 
 
 # Method called when a student leaves an event.
 @app.put("/leaveEvent/")
-def leaveEvent(studentID, eventID):
-    return {"result": events.leave_event(cur, studentID, eventID)}
+def leaveEvent(sessionid, eventID):
+    email = check_session_id(sessionid)
+    student_id, _ = profiles.get_student_uni_id(cur, email)
+    return {"result": events.leave_event(cur, student_id, eventID)}
 
 
 # Method called when the host of an event cancels the event.
 @app.delete("/cancelEvent/")
-def cancelEvent(hostID, eventID):
+def cancelEvent(sessionid, eventID):
+    email = check_session_id(sessionid)
+    hostID, _ = profiles.get_student_uni_id(cur, email)
     return {"result": events.cancel_event(cur, hostID, eventID)}
 
 
 # Method called to get event info of one event given event id
 @app.get("/getEvent/")
-def getEvent(sessionid, eventID, chatroomID):
+def getEvent(sessionid, eventID):
     email = check_session_id(sessionid)
     student_id, uni_id = profiles.get_student_uni_id(cur, email)
-    return {"result": events.get_event(cur, eventID, chatroomID, student_id, uni_id)}
+    return {"result": events.get_event(cur, eventID, student_id, uni_id)}
 
 
 # Method called to get all events a student is a part of.
@@ -205,10 +218,10 @@ def getCourses(sessionid):
 
 # Method called to help a student identify if joining an event will create a time conflict.
 @app.get("/hasConflict/")
-def hasConflict(sessionid, startTime, endTime):
+def hasConflict(sessionid, startTime, endTime, event_id):
     email = check_session_id(sessionid)
     student_id, _ = profiles.get_student_uni_id(cur, email)
-    return {"result": events.has_conflict(cur, startTime, endTime, student_id)}
+    return {"result": events.has_conflict(cur, startTime, endTime, student_id, event_id)}
 
 
 @app.put("/saveMessage/")
@@ -236,6 +249,7 @@ def importStudentSchedule(email):
 def importStudentProfile(email):
     return {"result": request_uni.request_profile(cur, email)}
 
+
 @app.post("/verifyIdentity/")
 def verifyIdentity(sessionid):
     email = check_session_id(sessionid)
@@ -243,7 +257,7 @@ def verifyIdentity(sessionid):
         return {'result': False}
     return {"result": asyncio.run(verification.start_verify(email))}
 
- 
+
 @app.get("/checkVerificationCode/")
 def checkVerificationCode(sessionid, token):
     if getVerificationStatus(sessionid)['verified']:
@@ -264,6 +278,7 @@ def getName(email):
     name_cache[email] = name
     return name
 
+
 @app.get("/checkVerificationCode/")
 def checkVerificationCode(sessionid, token):
     if getVerificationStatus(sessionid)['verified']:
@@ -274,6 +289,7 @@ def checkVerificationCode(sessionid, token):
         request_uni.request_schedule(cur, email)
         request_uni.request_profile(cur, email)
     return {"result": is_verified}
+
 
 @app.post("/createFlashcard/")
 def createFlashcard(chatroom_id, front_text, back_text):
@@ -324,21 +340,18 @@ def createChatroom(sessionid, chatroom_name):
     return {"result": chatroom.create_chatroom(cur, user_id, chatroom_name, uni_id)}
 
 
-@app.get("/getChatroomsForStudent")
-def getChatroomsForStudent(student_id, uni_id):
-    return {"result": chatroom.getChatrooms(cur, student_id, uni_id)}
-
-
 # Method called to get a student's verification status.
 @app.get("/getVerificationStatus/")
 def getVerificationStatus(sessionid):
     email = check_session_id(sessionid)
     return profiles.is_verified(cur, email)
 
+
 # Method called to get a list events in a chatroom.
-@app.get("getChatroomEvents")
+@app.get("/getChatroomEvents")
 def getChatroomEvents(chatroomID):
-    return chatroom.get_chatroom_events(cur,chatroomID)
+    return chatroom.get_chatroom_events(cur, chatroomID)
+
 
 # Test function to send random data.
 @app.get("/test/")

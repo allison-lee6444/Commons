@@ -1,19 +1,15 @@
 "use client"
 // credit: https://richreact.com/react-examples/profile-with-data-and-skills#code-editor1
-import React, {useState, useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import './event.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import EventTable from "./events_table";
+import EventTable from "@/app/events/events_table";
 import {getCookie} from "@/app/utils"
 
-function Events() {
-  const [received_reply, set_received_reply] = useState(false);
-  const [errorMessages, setErrorMessages] = useState({});
-  const [events, set_events] = useState([]);
-
+const ChatroomEvents = ({params}) => {
+  const sessionid = getCookie('sessionid');
   const [data, set_data] = useState([]);
 
-  const sessionid = getCookie('sessionid');
   if (sessionid === null) {
     return (
       <div>
@@ -24,29 +20,28 @@ function Events() {
   }
 
   useEffect(() => {
-    fetch('http://127.0.0.1:8060/getEvents/?sessionid=' + sessionid,
+    fetch('http://127.0.0.1:8060/getChatroomEvents?chatroomID=' + params.chatroom_id,
       {method: 'GET'})
       .then((response) => response.json())
       .then((r_data) => {
-        console.log(JSON.parse(r_data.result))
-        const events = JSON.parse(r_data.result);
+        const events = JSON.parse(r_data.events);
         const transform_events = events.map((elem) => {
-          const [event_id, chatroom_id, event_name, fname, lname, email, descript, location_name, start_time, end_time]
-            = elem;
+          const [event_name, fname, lname, email, descript, location_name, location_coordinates, start_time, end_time,
+            event_id] = elem;
           return ({
             event_id: event_id,
-            chatroom_id: chatroom_id,
+            chatroom_id: params.chatroom_id,
             event_name: event_name,
             host_name: fname + ' ' + lname,
             host_email: email,
             loc_name: location_name,
-            start_time: new Date(start_time).toLocaleString(),
-            end_time: new Date(end_time).toLocaleString(),
+            start_time: start_time,
+            end_time: end_time,
             description: descript,
             details: (
               <button
                 className="btn btn-default"
-                onClick={() => window.location.replace('/event/' + event_id)}
+                onClick={() => window.location.replace('/event/'+event_id)}
               >
                 Details
               </button>
@@ -55,10 +50,9 @@ function Events() {
         });
         set_data(transform_events);
       });
-  }, []);
+  }, [params.chatroom_id]);
 
-  // load when api reply received and variables populated
-  return (
+  return ((
     <div>
       <div className="container">
         <div className="main-body">
@@ -68,12 +62,20 @@ function Events() {
               <li className="breadcrumb-item active" aria-current="page">Events</li>
             </ol>
           </nav>
-          <EventTable rows={data}/>
         </div>
+        <div className="col text-center">
+          <button
+            className="btn btn-primary"
+            onClick={() => window.location.replace('/events/chatroom/' + params.chatroom_id + '/create')}
+          >
+            Create Event
+          </button>
+        </div>
+        <EventTable rows={data}/>
 
       </div>
     </div>
-  );
+  ));
 }
 
-export default Events;
+export default ChatroomEvents;

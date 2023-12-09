@@ -63,7 +63,7 @@ const ChatBar = ({socket}) => {
       <div>
         <h4 className='chat__header'>MENU</h4>
         <button type='button' className='menu_button' onClick={() => window.location.replace('/events')}>
-          Your Events
+          My Events
         </button>
         <button type='button' className='menu_button' onClick={() => window.location.replace('/profile')}>
           Profile

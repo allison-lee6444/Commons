@@ -1,6 +1,6 @@
 /* credit: https://richreact.com/react-examples/Edit-profile-page#code-editor1 */
 "use client"
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import './eventedit.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import {useForm} from "react-hook-form"
@@ -14,8 +14,8 @@ import {
 } from "react-geocode";
 import {getCookie} from "@/app/utils";
 
-function EditEvent({params}) {
-  const event_id = params.event_id;
+function CreateEvent({params}) {
+  const chatroom_id = params.chatroom_id;
   const API_KEY = process.env.NEXT_PUBLIC_API_KEY;
   const [errorMessages, setErrorMessages] = useState({});
   const [[latitude, longitude], set_coords] = useState([40.694067025800905, -73.98662336197091]);
@@ -53,8 +53,9 @@ function EditEvent({params}) {
       description: getFieldState('description').isDirty ? getValues('description') : event_info.description
     };
     set_event_info(new_event);
+    // 999999999 meaning do not exclude any events
     fetch('http://127.0.0.1:8060/hasConflict/?sessionid=' + sessionid + '&startTime=' +
-      start_datetime + '&endTime=' + end_datetime + '&event_id=' + event_id, {method: "GET"})
+      start_datetime + '&endTime=' + end_datetime + '&event_id=' + 999999999, {method: "GET"})
       .then((response) => response.json())
       .then((data) => {
           const has_conflict = data.result;
@@ -70,19 +71,17 @@ function EditEvent({params}) {
       .catch((error) => setErrorMessages({name: "server", message: "Server Error: " + error}));
 
     const postEventData = () => {
-      fetch('http://127.0.0.1:8060/editEvent/?sessionid=' + sessionid + '&event_name=' +
-        encodeURIComponent(new_event.event_name) + '&description=' +
-        encodeURIComponent(new_event.description) + '&loc_name=' + encodeURIComponent(new_event.loc_name) +
-        '&loc_coords=' + latitude + ',' + longitude + '&start_time=' +
-        start_datetime + '&end_time=' + end_datetime + '&event_id=' + event_id, {method: "PUT"})
+      fetch('http://127.0.0.1:8060/createEvent/?sessionid=' + sessionid + '&chatroomID=' +
+        chatroom_id + '&eventName=' + encodeURIComponent(new_event.event_name) + '&description=' +
+        encodeURIComponent(new_event.description) + '&locName=' + encodeURIComponent(new_event.loc_name) +
+        '&locCoord=' + latitude + ',' + longitude + '&startTime=' +
+        start_datetime + '&endTime=' + end_datetime, {method: "POST"})
         .then((response) => response.json())
-        .then((data) => {
-            if (data.result)
-              window.location.replace('/event/' + params.event_id)
-            else
-              setErrorMessages({name: "server", message: "Server Error: Sorry, try again"})
+        .then((data1) => {
+          if (data1) {
+            window.location.replace('/event/' + data1.result);
           }
-        )
+        })
         .catch((error) => setErrorMessages({name: "server", message: "Server Error: " + error}));
     }
   }
@@ -92,38 +91,6 @@ function EditEvent({params}) {
     event.preventDefault();
     window.location.replace('/event/' + params.event_id);
   }
-
-  useEffect(() => {
-    fetch('http://127.0.0.1:8060/getEvent/?sessionid=' + sessionid + '&eventID=' + event_id)
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.detail === 'Database Error') {
-          window.location.replace('/event/error')
-        }
-        if (data.result.length === 0) {
-          window.location.replace('/events');
-        }
-        const [event_name, fname, lname, email, descript, location_name, location_coordinates, start_time, end_time, joined] =
-          JSON.parse(data.result)[0];
-        set_event_info(
-          {
-            event_name: event_name,
-            loc_name: location_name,
-            description: descript,
-            fname: fname,
-            lname: lname,
-            email: email,
-          }
-        );
-        const [lat, lng] = location_coordinates.split(',')
-        set_coords([lat, lng]);
-        set_start(new Date(Date.parse(start_time)));
-        set_end(new Date(Date.parse(end_time)));
-      })
-      .catch((error) => setErrorMessages({name: "server", message: "Server Error: " + error}))
-
-  }, []);
-
 
   const {
     register,
@@ -155,6 +122,8 @@ function EditEvent({params}) {
   }
 
 
+// load when api reply received and variables populated
+// return (received_reply && (
   return ((
     <div className="container bootstrap snippets bootdeys">
       <div className="row">
@@ -173,7 +142,6 @@ function EditEvent({params}) {
                   <div className="col-sm-10">
                     <input
                       className="form-control"
-                      defaultValue={event_info.event_name}
                       {...register("event_name", {required: true})}
                     />
                   </div>
@@ -195,7 +163,6 @@ function EditEvent({params}) {
                   <div className="col-sm-10">
                     <input
                       className="form-control"
-                      defaultValue={event_info.loc_name}
                       {...register("loc_name", {required: true})}
                     />
                   </div>
@@ -234,7 +201,6 @@ function EditEvent({params}) {
                   <div className="col-sm-10">
                     <textarea
                       className="form-control"
-                      defaultValue={event_info.description}
                       {...register("description")}
                     />
                   </div>
@@ -259,4 +225,4 @@ function EditEvent({params}) {
   ));
 }
 
-export default EditEvent;
+export default CreateEvent;
