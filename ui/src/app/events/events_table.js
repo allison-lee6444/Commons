@@ -31,6 +31,11 @@ const EventTable = (rows) => {
         field: 'host_name',
         sort: 'asc',
         width: 100
+      }, {
+        label: 'Host Email',
+        field: 'host_email',
+        sort: 'asc',
+        width: 100
       },
       {
         label: 'Location Name',
@@ -55,7 +60,13 @@ const EventTable = (rows) => {
         field: 'description',
         sort: false,
         width: 100
-      }
+      },
+      {
+        label: 'Details',
+        field: 'details',
+        sort: false,
+        width: 100
+      },
     ],
     rows: rows.rows
   };

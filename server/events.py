@@ -7,57 +7,74 @@ def serialize_datetime(obj):
     if isinstance(obj, (datetime.datetime, datetime.time, datetime.date)):
         return obj.isoformat()
 
-# Create a event.
-def create_event(cur, chatroom_id, event_name, host_id, uni_id, description, loc_name, loc_coords, start_time, end_time):
-    try:
 
+# Create a event.
+def create_event(cur, chatroom_id, event_name, host_id, uni_id, description, loc_name, loc_coords, start_time,
+                 end_time):
+    start_time = ''.join(start_time.split('GMT')[:-1])
+    end_time = ''.join(end_time.split('GMT')[:-1])
+    format = '%a %b %d %Y %H:%M:%S '
+    start_time = datetime.datetime.strptime(start_time, format)
+    end_time = datetime.datetime.strptime(end_time, format)
+    try:
+        cur.execute('SELECT COUNT(*) FROM event')
+        (event_id,) = cur.fetchone()
+        event_id += 1
         cur.execute(
             "INSERT INTO Event VALUES (%(event_name)s,%(host_id)s,%(uni_id)s,%(chatroom_id)s,%(description)s,%(loc_name)s,%(loc_coords)s,"
-            "%(startTime)s,%(endTime)s,DEFAULT)",
+            "%(startTime)s,%(endTime)s,%(event_id)s)",
             {'event_name': event_name, 'host_id': host_id, 'uni_id': uni_id, 'description': description,
-             'loc_name': loc_name,
+             'loc_name': loc_name, 'event_id': event_id,
              'loc_coords': loc_coords, 'startTime': start_time, 'endTime': end_time, 'chatroom_id': chatroom_id}
         )
+        cur.execute("INSERT INTO going_to_event VALUES (%(event_id)s, %(host_id)s, %(chatroom_id)s)",
+                    {'event_id': event_id, 'host_id': host_id, 'chatroom_id': chatroom_id})
         cur.execute("COMMIT")
-        return True
+        return event_id
     except BaseException as e:
         print(f'Exception: {e}')
         raise HTTPException(
             status_code=500,
             detail="Database Error",
         )
-    
+
+
 # Edit a event.
-def edit_event(cur, chatroom_id, event_name, host_id, uni_id, description, loc_name, loc_coords, start_time, end_time, event_id):
+def edit_event(cur, event_name, host_id, uni_id, description, loc_name, loc_coords, start_time, end_time,
+               event_id):
+    start_time = ''.join(start_time.split('GMT')[:-1])
+    end_time = ''.join(end_time.split('GMT')[:-1])
+    format = '%a %b %d %Y %H:%M:%S '
+    start_time = datetime.datetime.strptime(start_time, format)
+    end_time = datetime.datetime.strptime(end_time, format)
     try:
         cur.execute(
-            "SELECT * FROM event WHERE event_id=%(event_id)s",{'event_id':event_id}
+            "SELECT * FROM event WHERE event_id=%(event_id)s", {'event_id': event_id}
         )
         result = cur.fetchall()
 
         if len(result) != 0:
             cur.execute(
                 "UPDATE event SET event_name=%(event_name)s,host_id=%(host_id)s,uni_id=%(uni_id)s,"
-                "chatroom_id=%(chatroom_id)s,descript=%(description)s,location_name=%(loc_name)s,"
+                "descript=%(description)s,location_name=%(loc_name)s,"
                 "location_coordinates=%(loc_coords)s,start_time=%(start_time)s,end_time=%(end_time)s "
                 "WHERE event_id=%(event_id)s",
                 {
-                    'event_name':event_name,
-                    'host_id':host_id,
-                    'uni_id':uni_id,
-                    'chatroom_id':chatroom_id,
-                    'description':description,
-                    'loc_name':loc_name,
-                    'loc_coords':loc_coords,
-                    'start_time':start_time,
-                    'end_time':end_time,
-                    'event_id':event_id
+                    'event_name': event_name,
+                    'host_id': host_id,
+                    'uni_id': uni_id,
+                    'description': description,
+                    'loc_name': loc_name,
+                    'loc_coords': loc_coords,
+                    'start_time': start_time,
+                    'end_time': end_time,
+                    'event_id': event_id
                 }
             )
             cur.execute("COMMIT")
-            return {'result':True}
-        
-        return {'result':False}
+            return {'result': True}
+
+        return {'result': False}
     except BaseException as e:
         print(f'Exception: {e}')
         raise HTTPException(
@@ -65,11 +82,14 @@ def edit_event(cur, chatroom_id, event_name, host_id, uni_id, description, loc_n
             detail="Database Error",
         )
 
+
 # When a student hits the "join event" button.
-def join_event(cur, event_id, student_id, chatroom_id):
+def join_event(cur, event_id, student_id, uni_id):
     try:
-        cur.execute("INSERT INTO going_to_event VALUES (%(eventID)s,%(studentID)s,%(chatroomID)s)",
-                    {'studentID': student_id, 'eventID': event_id, 'chatroomID': chatroom_id})
+        cur.execute("INSERT INTO going_to_event VALUES (%(eventID)s,%(studentID)s,"
+                    "(SELECT chatroom_id FROM event JOIN in_chatroom USING (chatroom_id) "
+                    "WHERE event_id=%(eventID)s AND student_id=%(studentID)s AND event.uni_id=%(uni_id)s))",
+                    {'studentID': student_id, 'eventID': event_id, 'uni_id': uni_id})
         cur.execute("COMMIT")
         return True
     except BaseException as e:
@@ -139,7 +159,7 @@ def get_events(cur, student_id, uni_id):
     try:
         cur.execute(
             "SELECT going_to_event.event_id,going_to_event.chatroom_id,"
-            "event.event_name,host.fname,host.lname,event.descript,event.location_name,"
+            "event.event_name,host.fname,host.lname,host.email,event.descript,event.location_name,"
             "event.start_time,event.end_time"
             " FROM going_to_event LEFT JOIN event ON going_to_event.event_id = event.event_id "
             "JOIN student AS host ON event.host_id=host.student_id AND event.uni_id=host.uni_id "
@@ -157,19 +177,20 @@ def get_events(cur, student_id, uni_id):
         )
 
 
-# Get one event given id, untested
-def get_event(cur, event_id, chatroom_id, student_id, uni_id):
+def get_event(cur, event_id, student_id, uni_id):
     try:
         cur.execute(
-            "SELECT event_name, fname, lname, email, descript, location_name, location_coordinates, start_time, end_time "
-            "FROM event JOIN student ON event.host_id=student.student_id AND event.uni_id=student.uni_id JOIN "
-            "in_chatroom USING(chatroom_id)"  # confirm authorization (non-participants
+            "SELECT event_name, fname, lname, email, descript, location_name, location_coordinates, start_time, end_time"
+            ",(SELECT COUNT(*)=1 FROM going_to_event WHERE event_id=%(event_id)s AND student_id=%(student_id)s)"
+            " FROM event JOIN student ON (event.host_id=student.student_id AND event.uni_id=student.uni_id) JOIN "
+            "in_chatroom USING (chatroom_id) "  
             " WHERE event_id=%(event_id)s AND in_chatroom.student_id=%(student_id)s AND in_chatroom.uni_id=%(uni_id)s",
-            {"event_id": event_id, "chatroom_id": chatroom_id, "student_id": student_id, "uni_id": uni_id}
+            {"event_id": event_id, "student_id": student_id, "uni_id": uni_id}
         )
         result = cur.fetchall()
 
         if len(result) != 1:
+            print(result)
             raise LookupError("Number of records does not equal 1")
         return json.dumps(result, default=serialize_datetime)
     except BaseException as e:
@@ -245,7 +266,7 @@ def get_courses_meeting_on_same_day(cur, student_id, event_time):
 
 
 # For a given event's start/end times and a student, return True if the student has a time conflict.  False otherwise.
-def has_conflict(cur, start_time, end_time, student_id):
+def has_conflict(cur, start_time, end_time, student_id, event_id):
     start_time = ''.join(start_time.split('GMT')[:-1])
     end_time = ''.join(end_time.split('GMT')[:-1])
     format = '%a %b %d %Y %H:%M:%S '
@@ -262,8 +283,9 @@ def has_conflict(cur, start_time, end_time, student_id):
     try:
         cur.execute(
             "SELECT event.start_time,event.end_time FROM going_to_event LEFT JOIN event "
-            "ON going_to_event.event_id = event.event_id WHERE going_to_event.student_id = %(student_id)s",
-            {'student_id': student_id}
+            "ON going_to_event.event_id = event.event_id WHERE going_to_event.student_id = %(student_id)s"
+            " AND event.event_id<>%(event_id)s",
+            {'student_id': student_id, 'event_id': event_id}
         )
     except BaseException as e:
         print(f'Exception: {e}')

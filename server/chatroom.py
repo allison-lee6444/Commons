@@ -67,8 +67,9 @@ def create_chatroom(cur, user_id, chatroom_name, uni_id):
     try:
         cur.execute("SELECT MAX(id) FROM chatroom")
         chatroom_id = cur.fetchall()[0][0] + 1
-        cur.execute("INSERT INTO chatroom(id,chatroom_name, uni_id) VALUES(%(chatroom_id)s,%(chatroom_name)s, %(uni_id)s)",
-                    {"chatroom_name": chatroom_name, "uni_id": uni_id, "chatroom_id": chatroom_id})
+        cur.execute(
+            "INSERT INTO chatroom(id,chatroom_name, uni_id) VALUES(%(chatroom_id)s,%(chatroom_name)s, %(uni_id)s)",
+            {"chatroom_name": chatroom_name, "uni_id": uni_id, "chatroom_id": chatroom_id})
 
         cur.execute(
             "INSERT INTO in_chatroom(student_id, uni_id, chatroom_id) VALUES(%(user_id)s, %(uni_id)s, %(chatroom_id)s)",
@@ -179,17 +180,19 @@ def getChatrooms(cur, student_id, uni_id):
             status_code=500,
             detail="Database Error",
         )
-    
+
+
 # Get a list of events associated with a chatroom.
-def get_chatroom_events(cur,chatroomID):
+def get_chatroom_events(cur, chatroomID):
     try:
         cur.execute(
-            "SELECT event_name,host_id,uni_id,descript,location_name,location_coordinates,start_time,end_time,"
-            "event_id FROM event WHERE chatroom_id=%(chatroomID)s",{'chatroomID':chatroomID}
-
+            "SELECT event_name,fname,lname,email,descript,location_name,location_coordinates,start_time,end_time,"
+            "event_id FROM event JOIN student ON (host_id = student_id AND event.uni_id = student.uni_id)"
+            " WHERE chatroom_id=%(chatroomID)s",
+            {'chatroomID': chatroomID}
         )
-        result = json.dumps(cur.fetchall(),default=serialize_datetime)
-        return {"events":result}
+        result = json.dumps(cur.fetchall(), default=serialize_datetime)
+        return {"events": result}
     except BaseException as e:
         print(f'Exception: {e}')
         raise HTTPException(
